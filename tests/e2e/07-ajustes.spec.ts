@@ -73,3 +73,52 @@ test.describe("E2E 7 — Ajustes posteriores a la revisión", () => {
     await expect(page.getByText(/ya tiene un periodo llamado 2026-2/)).toBeVisible();
   });
 });
+
+test.describe("E2E 8 — Gestión de alertas y estados del trabajo", () => {
+  test("la gestión de una alerta sobrevive al recálculo", async ({ page }) => {
+    const nota = "Cité al estudiante y al director para el viernes.";
+    await login(page, CREDENCIALES.coordinador);
+    await page.goto("/alertas");
+
+    await page.getByRole("button", { name: "Registrar gestión" }).first().click();
+    await page.getByLabel("Nota de gestión").fill(nota);
+    await page.getByRole("button", { name: "Guardar" }).click();
+
+    await expect(page.getByText(nota)).toBeVisible();
+    await expect(page.getByText("En seguimiento").first()).toBeVisible();
+
+    // Regresión: antes la alerta se cerraba y el siguiente recálculo la
+    // volvía a crear, perdiendo la nota.
+    await page.getByRole("button", { name: "Recalcular alertas" }).click();
+    await expect(page.getByText(/Se revisaron \d+ trabajos/)).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText(nota)).toBeVisible();
+    await expect(page.getByText("En seguimiento").first()).toBeVisible();
+  });
+
+  test("una alerta descartada no vuelve a levantarse en el periodo", async ({ page }) => {
+    await login(page, CREDENCIALES.coordinador);
+    await page.goto("/alertas?estado=DISMISSED");
+
+    const descartadas = page.locator("li").filter({ hasText: "Inactividad" });
+    await expect(descartadas.first()).toBeVisible();
+
+    await page.goto("/alertas");
+    await page.getByRole("button", { name: "Recalcular alertas" }).click();
+    await expect(page.getByText(/Se revisaron \d+ trabajos/)).toBeVisible();
+
+    await page.goto("/alertas?estado=DISMISSED");
+    await expect(descartadas.first()).toBeVisible();
+  });
+
+  test("un trabajo terminado no aparece como al día", async ({ page }) => {
+    await login(page, CREDENCIALES.coordinador);
+    await page.goto("/trabajos?trabajo=COMPLETED");
+
+    // Dentro de la tabla, no en las opciones del filtro.
+    const tabla = page.getByRole("table");
+    await expect(tabla.getByText("Terminado", { exact: true }).first()).toBeVisible();
+    await expect(tabla.getByText("Al día", { exact: true })).toHaveCount(0);
+  });
+});

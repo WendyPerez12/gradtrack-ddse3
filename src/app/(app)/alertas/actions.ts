@@ -5,7 +5,7 @@ import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 import { NotFoundError, toActionError, type ActionResult } from "@/lib/errors";
 import { requireThesisAccess, thesisScopeWhere } from "@/lib/permissions/guards";
-import { dismissAlert, resolveAlert, syncAlertsForScope } from "@/modules/alerts/alert-service";
+import { dismissAlert, manageAlert, syncAlertsForScope } from "@/modules/alerts/alert-service";
 
 async function requireAlertAccess(alertId: string) {
   const actor = await requireActor();
@@ -18,16 +18,24 @@ async function requireAlertAccess(alertId: string) {
   return { actor, thesisId: alert.thesisId };
 }
 
-export async function resolveAlertAction(input: {
+/**
+ * Deja constancia de la gestión sin cerrar la alerta: sigue activa mientras la
+ * condición siga siendo cierta, y se resuelve sola cuando deje de serlo.
+ */
+export async function manageAlertAction(input: {
   alertId: string;
-  note?: string;
+  note: string;
 }): Promise<ActionResult> {
   try {
     const { actor, thesisId } = await requireAlertAccess(input.alertId);
-    await resolveAlert(actor, input.alertId, input.note);
+    await manageAlert(actor, input.alertId, input.note);
     revalidatePath("/alertas");
     revalidatePath(`/trabajos/${thesisId}`);
-    return { ok: true, data: undefined, message: "Alerta marcada como gestionada." };
+    return {
+      ok: true,
+      data: undefined,
+      message: "Gestión registrada. La alerta seguirá visible hasta que la situación cambie.",
+    };
   } catch (error) {
     return toActionError(error);
   }

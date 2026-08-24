@@ -11,6 +11,21 @@ export async function getActivePeriod(programId: string) {
   });
 }
 
+/** Periodos activos de varios programas, con su código, para los encabezados. */
+export async function getActivePeriods(programIds: string[] | null) {
+  return prisma.academicPeriod.findMany({
+    where: { active: true, ...(programIds ? { programId: { in: programIds } } : {}) },
+    select: {
+      id: true,
+      name: true,
+      endDate: true,
+      advisoryDeadline: true,
+      program: { select: { code: true, name: true } },
+    },
+    orderBy: { endDate: "asc" },
+  });
+}
+
 export async function requireActivePeriod(programId: string) {
   const period = await getActivePeriod(programId);
   if (!period) {

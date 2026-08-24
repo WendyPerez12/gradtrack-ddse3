@@ -44,7 +44,7 @@ erDiagram
 | `Advisory` | `advisories` | Asesoría: fecha programada, fecha real, estado, tema, resumen. |
 | `AdvisoryAttendance` | `advisory_attendances` | Asistencia de cada participante a la sesión. |
 | `AdvisoryCommitment` | `advisory_commitments` | Compromisos derivados de la asesoría. |
-| `Alert` | `alerts` | Alertas detectadas, con su severidad y su ciclo de vida. |
+| `Alert` | `alerts` | Alertas detectadas, con su severidad, su ciclo de vida y la gestión humana registrada (`managedAt`, `managedById`, `managementNote`). |
 | `ProgramSettings` | `program_settings` | Umbrales y mínimo de asesorías del programa. |
 | `AuditLog` | `audit_logs` | Traza inmutable de las acciones relevantes. |
 | `Notification` | `notifications` | Notificaciones internas por usuario. |

@@ -20,7 +20,7 @@ export async function getActiveAlertSummaries(
         },
       },
     },
-    orderBy: [{ severity: "desc" }, { detectedAt: "desc" }],
+    orderBy: [{ managedAt: { sort: "asc", nulls: "first" } }, { severity: "desc" }, { detectedAt: "desc" }],
     take: 50,
   });
 
@@ -33,5 +33,7 @@ export async function getActiveAlertSummaries(
     detectedAt: alert.detectedAt,
     studentName: alert.thesis.student.user.name,
     directorName: alert.thesis.supervisions[0]?.user.name ?? null,
+    managed: Boolean(alert.managedAt),
+    managementNote: alert.managementNote,
   }));
 }

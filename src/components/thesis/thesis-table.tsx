@@ -2,7 +2,7 @@ import Link from "next/link";
 import { DataTable, Pagination, type Column } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/states";
 import { ProgressIndicator } from "@/components/ui/progress-indicator";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { StatusBadge, ThesisStatusBadge } from "@/components/ui/status-badge";
 import { formatShortDate } from "@/lib/dates";
 import type { ThesisMonitoringRow } from "@/modules/monitoring/thesis-monitoring";
 
@@ -176,7 +176,12 @@ export function ThesisTable({
       header: "Estado",
       sortHref: hrefForSort("status"),
       sorted: sortedFlag("status"),
-      cell: (row) => <StatusBadge status={row.monitoring.status} size="sm" />,
+      cell: (row) =>
+        row.status === "ACTIVE" ? (
+          <StatusBadge status={row.monitoring.status} size="sm" />
+        ) : (
+          <ThesisStatusBadge status={row.status} />
+        ),
     },
     {
       key: "actions",

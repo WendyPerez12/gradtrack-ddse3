@@ -379,6 +379,12 @@ export default async function ThesisDetailPage({ params }: { params: Promise<{ i
                       <AlertBadge severity={alert.severity} />
                     </div>
                     <p className="mt-1 text-sm text-ink-soft">{alert.message}</p>
+                    {alert.managementNote ? (
+                      <p className="mt-1.5 rounded-md bg-surface-muted px-2.5 py-1.5 text-xs text-ink-soft">
+                        <span className="font-medium text-ink">En seguimiento:</span>{" "}
+                        {alert.managementNote}
+                      </p>
+                    ) : null}
                     <p className="mt-1 text-xs text-ink-faint">
                       Detectada el {formatShortDate(alert.detectedAt)}
                       {alert.status !== "ACTIVE"
@@ -387,7 +393,7 @@ export default async function ThesisDetailPage({ params }: { params: Promise<{ i
                     </p>
                     {alert.status === "ACTIVE" && canManage ? (
                       <div className="mt-2">
-                        <AlertActions alertId={alert.id} />
+                        <AlertActions alertId={alert.id} managed={Boolean(alert.managedAt)} />
                       </div>
                     ) : null}
                   </li>

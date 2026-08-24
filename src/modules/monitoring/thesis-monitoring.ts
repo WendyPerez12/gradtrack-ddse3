@@ -225,13 +225,17 @@ export interface MonitoringSummary {
 }
 
 export function summarize(rows: ThesisMonitoringRow[], scheduledAdvisories = 0): MonitoringSummary {
+  // El semáforo describe trabajos en curso: uno terminado o cancelado ya no
+  // está en seguimiento y contarlo como "al día" falsearía el indicador.
+  const enCurso = rows.filter((r) => r.status === "ACTIVE");
+
   return {
     total: rows.length,
-    onTrack: rows.filter((r) => r.monitoring.status === "ON_TRACK").length,
-    followUp: rows.filter((r) => r.monitoring.status === "FOLLOW_UP").length,
-    alert: rows.filter((r) => r.monitoring.status === "ALERT").length,
+    onTrack: enCurso.filter((r) => r.monitoring.status === "ON_TRACK").length,
+    followUp: enCurso.filter((r) => r.monitoring.status === "FOLLOW_UP").length,
+    alert: enCurso.filter((r) => r.monitoring.status === "ALERT").length,
     completedAdvisories: rows.reduce((acc, r) => acc + r.monitoring.completedCount, 0),
     scheduledAdvisories,
-    withoutDirector: rows.filter((r) => !r.director).length,
+    withoutDirector: enCurso.filter((r) => !r.director).length,
   };
 }

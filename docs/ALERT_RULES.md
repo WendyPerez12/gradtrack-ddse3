@@ -132,9 +132,29 @@ histórico. `syncThesisAlerts()` corre después de cada cambio en asesorías o
 supervisión, y también desde el botón **Recalcular alertas**:
 
 - una alerta que las reglas justifican y no está activa → se crea;
-- una activa que sigue justificada → se actualiza mensaje y severidad;
+- una activa que sigue justificada → se actualiza mensaje y severidad,
+  **conservando la gestión** que alguien haya registrado;
 - una activa que ya no aplica → pasa a `RESOLVED` con su fecha, sin persona
-  asociada (fue automática).
+  asociada (fue automática);
+- un tipo **descartado** por una persona dentro del periodo no se vuelve a
+  levantar: «no aplica» es una decisión, no un estado transitorio.
 
-Una persona puede además **gestionar** (`RESOLVED`) o **descartar** (`DISMISSED`)
-una alerta dejando una nota. Nada se borra nunca.
+### Gestionar no es cerrar
+
+Registrar la gestión **no cierra la alerta**. La condición que la originó sigue
+siendo cierta —el estudiante sigue sin asesorías— y cerrarla haría que el
+siguiente recálculo la levantara otra vez con fecha nueva, perdiendo la nota.
+
+En su lugar la alerta queda activa y marcada **en seguimiento**, con quién la
+gestionó, cuándo y qué hizo. En la bandeja las no gestionadas van primero: son
+las que la coordinación tiene que atender hoy. La alerta se resuelve sola
+cuando el hecho cambia.
+
+| Situación | Estado | Qué se ve |
+|---|---|---|
+| Recién detectada | `ACTIVE` | En la bandeja, sin marca |
+| Alguien registró qué hizo | `ACTIVE` + gestión | «En seguimiento» con la nota |
+| La condición dejó de aplicar | `RESOLVED` | En el histórico, resuelta automáticamente |
+| Una persona decidió que no aplica | `DISMISSED` | En el histórico, no reaparece en el periodo |
+
+Nada se borra nunca.

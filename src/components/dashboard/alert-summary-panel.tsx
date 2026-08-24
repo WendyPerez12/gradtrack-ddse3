@@ -15,14 +15,22 @@ export interface AlertSummaryItem {
   detectedAt: Date;
   studentName: string;
   directorName: string | null;
+  managed: boolean;
+  managementNote: string | null;
 }
 
 export function AlertSummaryPanel({ alerts }: { alerts: AlertSummaryItem[] }) {
+  const sinGestionar = alerts.filter((alert) => !alert.managed).length;
+
   return (
     <Card>
       <CardHeader
         title="Alertas tempranas"
-        description={`${alerts.length} activas`}
+        description={
+          alerts.length === 0
+            ? "Ninguna activa"
+            : `${alerts.length} activas · ${sinGestionar} sin gestionar`
+        }
         action={
           <Link href="/alertas" className="text-sm font-medium text-brand hover:underline">
             Ver todas
@@ -41,9 +49,21 @@ export function AlertSummaryPanel({ alerts }: { alerts: AlertSummaryItem[] }) {
               <Link href={`/trabajos/${alert.thesisId}`} className="block px-5 py-3.5 hover:bg-surface-muted">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-sm font-medium text-ink">{alert.studentName}</p>
-                  <AlertBadge severity={alert.severity} />
+                  <span className="flex items-center gap-1.5">
+                    {alert.managed ? (
+                      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink-soft">
+                        En seguimiento
+                      </span>
+                    ) : null}
+                    <AlertBadge severity={alert.severity} />
+                  </span>
                 </div>
                 <p className="mt-1 text-sm text-ink-soft">{alert.message}</p>
+                {alert.managementNote ? (
+                  <p className="mt-1.5 border-l-2 border-border-strong pl-2 text-xs text-ink-soft">
+                    {alert.managementNote}
+                  </p>
+                ) : null}
                 <p className="mt-1 text-xs text-ink-faint">
                   {ALERT_TYPE_LABEL[alert.type]} · detectada el {formatShortDate(alert.detectedAt)}
                   {alert.directorName ? ` · director: ${alert.directorName}` : ""}

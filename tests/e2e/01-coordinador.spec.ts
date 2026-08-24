@@ -8,8 +8,8 @@ test.describe("E2E 1 — El coordinador consulta el seguimiento", () => {
     await expect(page.getByRole("heading", { name: "Panel de seguimiento" })).toBeVisible();
 
     // Indicadores del §34.
-    await expect(page.getByText("Trabajos activos")).toBeVisible();
-    await expect(page.getByText("Al día", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Trabajos listados")).toBeVisible();
+    await expect(page.getByText("En seguimiento", { exact: true })).toBeVisible();
     await expect(page.getByText("En alerta")).toBeVisible();
 
     // La bandeja de alertas tempranas muestra el caso crítico del seed.

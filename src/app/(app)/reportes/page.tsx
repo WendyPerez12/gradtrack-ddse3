@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatShortDate } from "@/lib/dates";
 import { requireRole } from "@/lib/auth/session";
-import { getActivePeriod } from "@/modules/programs/program-service";
+import { getActivePeriods } from "@/modules/programs/program-service";
 import { queryThesisList, type ThesisListParams } from "@/modules/theses/thesis-query";
 import type { ThesisMonitoringRow } from "@/modules/monitoring/thesis-monitoring";
 
@@ -23,7 +23,7 @@ export default async function ReportsPage({
   const actor = await requireRole(["ADMIN", "COORDINADOR"]);
   const params = await searchParams;
   const list = await queryThesisList(actor, { ...params, page: "1" });
-  const period = actor.programIds[0] ? await getActivePeriod(actor.programIds[0]) : null;
+  const periods = await getActivePeriods(actor.role === "ADMIN" ? null : actor.programIds);
 
   const columns: Column<ThesisMonitoringRow>[] = [
     {
@@ -67,9 +67,11 @@ export default async function ReportsPage({
       <PageHeader
         title="Reporte de seguimiento"
         description={
-          period
-            ? `Periodo ${period.name} · del ${formatShortDate(period.startDate)} al ${formatShortDate(period.endDate)}`
-            : "Sin periodo activo configurado"
+          periods.length === 0
+            ? "Sin periodo activo configurado"
+            : periods
+                .map((p) => `${p.program.code} ${p.name} · cierra el ${formatShortDate(p.endDate)}`)
+                .join(" · ")
         }
         actions={
           <Link href="/api/reportes/seguimiento" className={buttonVariants({ variant: "secondary" })}>

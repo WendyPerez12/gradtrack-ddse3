@@ -10,6 +10,8 @@ export const PAGE_SIZE = 20;
 
 export interface ThesisListParams {
   q?: string;
+  /** Estado del trabajo. Por defecto solo se listan los activos. */
+  trabajo?: string;
   programa?: string;
   cohorte?: string;
   semestre?: string;
@@ -37,9 +39,21 @@ export function parseSort(params: ThesisListParams): { sort: SortKey; dir: "asc"
 }
 
 /** Construye el `where` de Prisma a partir del alcance del actor y los filtros. */
+export const THESIS_STATUSES = ["ACTIVE", "SUSPENDED", "COMPLETED", "CANCELLED"] as const;
+
 export function buildThesisWhere(actor: Actor, params: ThesisListParams): Prisma.ThesisWhereInput {
   const where: Prisma.ThesisWhereInput = { ...thesisScopeWhere(actor) };
   const and: Prisma.ThesisWhereInput[] = [];
+
+  // El seguimiento es sobre trabajos en curso; los terminados, suspendidos o
+  // cancelados solo aparecen si se piden explícitamente.
+  if (params.trabajo === "TODOS") {
+    // sin filtro
+  } else if (THESIS_STATUSES.includes(params.trabajo as (typeof THESIS_STATUSES)[number])) {
+    and.push({ status: params.trabajo as (typeof THESIS_STATUSES)[number] });
+  } else {
+    and.push({ status: "ACTIVE" });
+  }
 
   if (params.programa) and.push({ programId: params.programa });
   if (params.cohorte) and.push({ student: { cohortId: params.cohorte } });

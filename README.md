@@ -140,10 +140,25 @@ Creadas por `pnpm db:seed`. **Solo para desarrollo.**
 | Estudiante 1 — al día | `estudiante1@gradtrack.test` | `Estudiante123*` |
 | Estudiante 2 — seguimiento | `estudiante2@gradtrack.test` | `Estudiante123*` |
 | Estudiante 3 — alerta | `estudiante3@gradtrack.test` | `Estudiante123*` |
-| Estudiantes 4 a 7 | `estudiante4..7@gradtrack.test` | `Estudiante123*` |
+| Estudiantes 4 a 11 | `estudiante4..11@gradtrack.test` | `Estudiante123*` |
+| Cohorte completa (14) | `cohorte1..14@gradtrack.test` | `Estudiante123*` |
+| Especialización (3) | `ege1..3@gradtrack.test` | `Estudiante123*` |
 
-El segundo programa (Maestría en Ingeniería) existe para comprobar que una
-coordinación **no** ve los trabajos de otro programa.
+Los datos de demostración cubren **todo** lo que el sistema sabe representar:
+
+- **Tres programas.** La coordinación de la demostración lleva dos (Maestría en
+  Educación y Especialización en Gestión Educativa); la Maestría en Ingeniería
+  es de otra coordinación y sirve para comprobar el aislamiento entre programas.
+- **Los seis tipos de alerta** activos a la vez, incluida una ya gestionada
+  —visible como «en seguimiento» con su nota— y una descartada.
+- **Los cinco estados de asesoría**: programada, realizada, no realizada (con
+  motivo), cancelada y reprogramada.
+- **Los cuatro estados de trabajo**: activo, suspendido, terminado y cancelado.
+- Un trabajo con **cambio de director**, para ver el histórico de supervisión.
+- Un trabajo **sin director** y una estudiante de primer semestre **sin trabajo**.
+- Compromisos pendientes, cumplidos y cancelados.
+- Volumen suficiente (24 trabajos en la coordinación) para ver **filtros,
+  ordenamiento y paginación** funcionando de verdad.
 
 ---
 

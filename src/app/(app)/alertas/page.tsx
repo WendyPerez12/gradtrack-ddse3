@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Alertas" };
 
 const FILTERS = [
   ["ACTIVE", "Activas"],
-  ["RESOLVED", "Gestionadas"],
+  ["RESOLVED", "Resueltas"],
   ["DISMISSED", "Descartadas"],
 ] as const;
 
@@ -36,7 +36,7 @@ export default async function AlertsPage({
     <>
       <PageHeader
         title="Alertas tempranas"
-        description="Se generan a partir de las reglas del programa. Al gestionarlas no se borran: quedan en el histórico con su nota."
+        description="Se generan a partir de las reglas del programa. Registrar la gestión deja constancia sin cerrarlas: se resuelven solas cuando la situación cambia."
         actions={<RecalculateAlertsButton />}
       />
 
@@ -84,6 +84,11 @@ export default async function AlertsPage({
                       </Link>
                       <AlertBadge severity={alert.severity} />
                       <span className="text-xs text-ink-faint">{ALERT_TYPE_LABEL[alert.type]}</span>
+                      {alert.managedAt ? (
+                        <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink-soft">
+                          En seguimiento
+                        </span>
+                      ) : null}
                     </div>
                     <p className="mt-1 text-sm text-ink-soft">{alert.message}</p>
                     <p className="mt-1 text-xs text-ink-faint">
@@ -99,13 +104,22 @@ export default async function AlertsPage({
                           }`
                         : ""}
                     </p>
-                    {alert.metadata && typeof alert.metadata === "object" && "nota" in alert.metadata ? (
+                    {alert.managementNote ? (
                       <p className="mt-2 rounded-md bg-surface-muted px-3 py-2 text-sm text-ink-soft">
-                        {String((alert.metadata as Record<string, unknown>).nota)}
+                        <span className="font-medium text-ink">Gestión:</span> {alert.managementNote}
+                        {alert.managedBy ? (
+                          <span className="text-ink-faint">
+                            {" "}
+                            — {alert.managedBy.name}
+                            {alert.managedAt ? `, ${formatShortDate(alert.managedAt)}` : ""}
+                          </span>
+                        ) : null}
                       </p>
                     ) : null}
                   </div>
-                  {alert.status === "ACTIVE" ? <AlertActions alertId={alert.id} /> : null}
+                  {alert.status === "ACTIVE" ? (
+                    <AlertActions alertId={alert.id} managed={Boolean(alert.managedAt)} />
+                  ) : null}
                 </div>
               </li>
             ))}

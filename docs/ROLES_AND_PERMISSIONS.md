@@ -38,7 +38,7 @@ permisos se resuelven por su relación con cada trabajo, no por su cargo.
 | Registrar asistencia y compromisos | Sí | Sí | Sí (activo) | Sí (activo) | No |
 | Cerrar o reabrir un compromiso | Sí | Sí | Sí (activo) | Sí (activo) | No |
 | Ver alertas | Sí | Sus programas | Sus trabajos | Sus trabajos | Las de su proceso |
-| Gestionar o descartar una alerta | Sí | Sí | Sí (activo) | Sí (activo) | No |
+| Registrar gestión o descartar una alerta | Sí | Sí | Sí (activo) | Sí (activo) | No |
 | Ver el panel de seguimiento | Sí | Sus programas | Sus dirigidos | Sus trabajos | Su proceso |
 | Reportes y exportación CSV | Sí | Sus programas | No | No | No |
 | Configurar umbrales del programa | Sí | Sus programas | No | No | No |

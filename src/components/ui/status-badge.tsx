@@ -84,3 +84,33 @@ export function AdvisoryStatusBadge({ status, label }: { status: string; label: 
     </span>
   );
 }
+
+export const THESIS_STATUS_LABEL: Record<string, string> = {
+  ACTIVE: "Activo",
+  SUSPENDED: "Suspendido",
+  COMPLETED: "Terminado",
+  CANCELLED: "Cancelado",
+};
+
+/**
+ * Estado del trabajo, no del seguimiento. Un trabajo terminado o cancelado no
+ * puede mostrarse como "al día": ya no está en seguimiento.
+ */
+export function ThesisStatusBadge({ status }: { status: string }) {
+  const tone =
+    status === "COMPLETED"
+      ? "bg-ok-soft text-ok"
+      : status === "CANCELLED"
+        ? "bg-surface-muted text-ink-soft"
+        : "bg-warn-soft text-warn";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        tone,
+      )}
+    >
+      {THESIS_STATUS_LABEL[status] ?? status}
+    </span>
+  );
+}

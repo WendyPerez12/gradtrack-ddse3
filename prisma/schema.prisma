@@ -123,6 +123,12 @@ enum AuditAction {
   SETTINGS_CHANGED
   ALERT_RESOLVED
   ALERT_DISMISSED
+  ALERT_MANAGED
+  USER_CREATED
+  USER_UPDATED
+  USER_DEACTIVATED
+  USER_REACTIVATED
+  USER_PASSWORD_RESET
 }
 
 enum NotificationType {
@@ -157,6 +163,7 @@ model User {
   attendances         AdvisoryAttendance[]
   commitments         AdvisoryCommitment[] @relation("CommitmentResponsible")
   alertsResolved      Alert[]              @relation("AlertResolvedBy")
+  alertsManaged       Alert[]              @relation("AlertManagedBy")
   auditLogs           AuditLog[]
   notifications       Notification[]
 
@@ -401,8 +408,15 @@ model Alert {
   status       AlertStatus   @default(ACTIVE)
   metadata     Json?
 
+  /// Gestión humana: la alerta sigue activa porque la condición no ha
+  /// cambiado, pero queda constancia de que alguien ya se ocupó de ella.
+  managedAt      DateTime?
+  managedById    String?
+  managementNote String?
+
   thesis     Thesis @relation(fields: [thesisId], references: [id], onDelete: Cascade)
   resolvedBy User?  @relation("AlertResolvedBy", fields: [resolvedById], references: [id])
+  managedBy  User?  @relation("AlertManagedBy", fields: [managedById], references: [id])
 
   @@index([thesisId, status])
   @@index([status, severity])

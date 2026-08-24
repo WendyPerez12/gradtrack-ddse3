@@ -10,7 +10,7 @@ import { ThesisFilters } from "@/components/thesis/thesis-filters";
 import { formatLongDate } from "@/lib/dates";
 import type { Actor } from "@/lib/permissions/rules";
 import { getActiveAlertSummaries } from "@/modules/alerts/alert-query";
-import { getActivePeriod } from "@/modules/programs/program-service";
+import { getActivePeriods } from "@/modules/programs/program-service";
 import {
   buildThesisWhere,
   getFilterOptions,
@@ -36,17 +36,25 @@ export async function CoordinatorPanel({
     getActiveAlertSummaries(buildThesisWhere(actor, params)),
   ]);
 
-  const period = actor.programIds[0] ? await getActivePeriod(actor.programIds[0]) : null;
+  // Una coordinación puede llevar varios programas, cada uno con su propio
+  // periodo: mostrar solo el primero daría una fecha de cierre equivocada.
+  const periods = await getActivePeriods(actor.role === "ADMIN" ? null : actor.programIds);
+  const eyebrow =
+    periods.length === 0
+      ? "Sin periodo activo"
+      : periods.length === 1
+        ? `Periodo ${periods[0]!.name} · cierra el ${formatLongDate(periods[0]!.endDate)}`
+        : periods
+            .map((p) => `${p.program.code} ${p.name} cierra el ${formatLongDate(p.endDate)}`)
+            .join(" · ");
+
+  const multiPrograma = actor.role === "ADMIN" || actor.programIds.length > 1;
   const href = makeHrefBuilder("/panel", params);
 
   return (
     <>
       <PageHeader
-        eyebrow={
-          period
-            ? `Periodo ${period.name} · cierra el ${formatLongDate(period.endDate)}`
-            : "Sin periodo activo"
-        }
+        eyebrow={eyebrow}
         title="Panel de seguimiento"
         description="Estado de todos los trabajos de grado del programa, calculado a partir de las asesorías registradas y del calendario académico."
         actions={
@@ -80,7 +88,7 @@ export async function CoordinatorPanel({
             page={list.page}
             pages={list.pages}
             total={list.total}
-            showProgram={actor.role === "ADMIN"}
+            showProgram={multiPrograma}
           />
         </Card>
 

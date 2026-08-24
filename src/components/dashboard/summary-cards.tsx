@@ -7,9 +7,10 @@ export function SummaryCards({ summary }: { summary: MonitoringSummary }) {
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
       <StatCard
-        label="Trabajos activos"
+        label="Trabajos listados"
         value={summary.total}
         tone="brand"
+        hint="Según los filtros aplicados"
         icon={<GraduationCap className="size-4" aria-hidden="true" />}
       />
       <StatCard

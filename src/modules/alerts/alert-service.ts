@@ -31,10 +31,24 @@ export async function syncThesisAlerts(
     where: { thesisId, status: "ACTIVE" },
   });
 
+  // Una alerta descartada por una persona no vuelve a levantarse dentro del
+  // mismo periodo: "no aplica" es una decisión, no un estado transitorio.
+  const dismissed = await prisma.alert.findMany({
+    where: {
+      thesisId,
+      status: "DISMISSED",
+      ...(row.period ? { detectedAt: { gte: row.period.startDate } } : {}),
+    },
+    select: { type: true },
+  });
+  const dismissedTypes = new Set(dismissed.map((a) => a.type));
+
   const evaluatedByType = new Map(evaluated.map((a) => [a.type, a]));
   const activeByType = new Map(active.map((a) => [a.type, a]));
 
-  const toCreate = evaluated.filter((a) => !activeByType.has(a.type));
+  const toCreate = evaluated.filter(
+    (a) => !activeByType.has(a.type) && !dismissedTypes.has(a.type),
+  );
   const toResolve = active.filter((a) => !evaluatedByType.has(a.type));
   const toUpdate = evaluated.filter((a) => activeByType.has(a.type));
 
@@ -54,6 +68,8 @@ export async function syncThesisAlerts(
     for (const alert of toUpdate) {
       const current = activeByType.get(alert.type)!;
       if (current.severity !== alert.severity || current.message !== alert.message) {
+        // La gestión (managedAt / managementNote) se conserva: la condición
+        // sigue siendo la misma, solo cambió su magnitud.
         await tx.alert.update({
           where: { id: current.id },
           data: {
@@ -75,9 +91,16 @@ export async function syncThesisAlerts(
   });
 
   if (toCreate.length > 0) {
-    const recipients = [row.studentUserId, row.director?.userId, row.codirector?.userId].filter(
-      (id): id is string => Boolean(id),
-    );
+    const coordinators = await prisma.programMembership.findMany({
+      where: { programId: row.programId, role: { in: ["COORDINADOR", "ADMIN"] } },
+      select: { userId: true },
+    });
+    const recipients = [
+      row.studentUserId,
+      row.director?.userId,
+      row.codirector?.userId,
+      ...coordinators.map((c) => c.userId),
+    ].filter((id): id is string => Boolean(id));
     await notificationService.notify({
       userIds: recipients,
       type: "ALERT_RAISED",
@@ -129,8 +152,10 @@ export async function listAlerts(
         },
       },
       resolvedBy: { select: { name: true } },
+      managedBy: { select: { name: true } },
     },
-    orderBy: [{ status: "asc" }, { severity: "desc" }, { detectedAt: "desc" }],
+    // Sin gestionar primero: es lo que la coordinación necesita atender hoy.
+    orderBy: [{ status: "asc" }, { managedAt: { sort: "asc", nulls: "first" } }, { severity: "desc" }, { detectedAt: "desc" }],
     take: 200,
   });
 }
@@ -173,9 +198,39 @@ async function changeAlertStatus(
   return updated;
 }
 
-/** Marca la alerta como gestionada, conservando el registro (§33, §74). */
-export async function resolveAlert(actor: Actor, alertId: string, note?: string) {
-  return changeAlertStatus(actor, alertId, "RESOLVED", note);
+/**
+ * Registra que una persona ya se ocupó de la alerta.
+ *
+ * La alerta NO se cierra: la condición que la originó sigue siendo cierta y
+ * cerrarla haría que el siguiente recálculo la levantara de nuevo, perdiendo
+ * la nota. Queda activa y marcada como "en seguimiento" hasta que el hecho
+ * cambie, momento en el cual se resuelve sola.
+ */
+export async function manageAlert(actor: Actor, alertId: string, note: string) {
+  const alert = await prisma.alert.findUnique({
+    where: { id: alertId },
+    select: { id: true, thesisId: true, status: true },
+  });
+  if (!alert) throw new NotFoundError("La alerta no existe.");
+
+  const updated = await prisma.alert.update({
+    where: { id: alert.id },
+    data: {
+      managedAt: new Date(),
+      managedById: actor.id,
+      managementNote: note.trim() || null,
+    },
+  });
+
+  await recordAudit({
+    userId: actor.id,
+    action: "ALERT_MANAGED",
+    entityType: "Alert",
+    entityId: alert.id,
+    metadata: { thesisId: alert.thesisId, nota: note || null },
+  });
+
+  return updated;
 }
 
 /** Descarta la alerta (no aplica al caso), conservando el registro. */

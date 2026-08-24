@@ -6,16 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { TextareaInput } from "@/components/ui/form";
 import { useToast } from "@/components/ui/toast";
-import { dismissAlertAction, resolveAlertAction } from "@/app/(app)/alertas/actions";
+import { dismissAlertAction, manageAlertAction } from "@/app/(app)/alertas/actions";
 
 /**
  * Gestión de una alerta. Resolver no borra: deja la nota de gestión y la
  * alerta pasa al histórico (§33, §74).
  */
-export function AlertActions({ alertId }: { alertId: string }) {
+export function AlertActions({
+  alertId,
+  managed = false,
+}: {
+  alertId: string;
+  managed?: boolean;
+}) {
   const router = useRouter();
   const toast = useToast();
-  const [open, setOpen] = useState<"resolve" | "dismiss" | null>(null);
+  const [open, setOpen] = useState<"manage" | "dismiss" | null>(null);
   const [pending, startTransition] = useTransition();
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -26,7 +32,7 @@ export function AlertActions({ alertId }: { alertId: string }) {
       const result =
         action === "dismiss"
           ? await dismissAlertAction({ alertId, note })
-          : await resolveAlertAction({ alertId, note });
+          : await manageAlertAction({ alertId, note });
       if (!result.ok) {
         toast.show(result.error, "error");
         return;
@@ -39,8 +45,8 @@ export function AlertActions({ alertId }: { alertId: string }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Button type="button" size="sm" variant="secondary" onClick={() => setOpen("resolve")}>
-        Registrar gestión
+      <Button type="button" size="sm" variant="secondary" onClick={() => setOpen("manage")}>
+        {managed ? "Actualizar gestión" : "Registrar gestión"}
       </Button>
       <Button type="button" size="sm" variant="ghost" onClick={() => setOpen("dismiss")}>
         Descartar
@@ -52,8 +58,8 @@ export function AlertActions({ alertId }: { alertId: string }) {
         title={open === "dismiss" ? "Descartar alerta" : "Registrar gestión"}
         description={
           open === "dismiss"
-            ? "La alerta se archiva como no aplicable, conservando el registro."
-            : "Deja constancia de la acción tomada; la alerta queda en el histórico."
+            ? "La alerta se archiva como no aplicable y no volverá a levantarse en este periodo."
+            : "La alerta seguirá visible, marcada como en seguimiento, hasta que la situación cambie."
         }
         width="sm"
       >
@@ -61,6 +67,7 @@ export function AlertActions({ alertId }: { alertId: string }) {
           <TextareaInput
             label="Nota de gestión"
             name="note"
+            required={open === "manage"}
             placeholder="Ej. Hablé con el estudiante y el director; retoman el 12 de septiembre."
           />
           <div className="flex justify-end gap-2">
