@@ -1,4 +1,4 @@
-import type { Prisma, SupervisionType } from "@/generated/prisma/client";
+import type { SupervisionType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions/rules";
