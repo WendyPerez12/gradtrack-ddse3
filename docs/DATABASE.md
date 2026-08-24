@@ -33,7 +33,7 @@ erDiagram
 
 | Entidad | Tabla | Para qué |
 |---|---|---|
-| `User` | `users` | Cuentas. Email único, `passwordHash`, rol y bandera `active` (baja lógica). |
+| `User` | `users` | Cuentas. Email único, `passwordHash`, rol, bandera `active` (baja lógica) y `mustChangePassword` para las contraseñas temporales. |
 | `Program` | `programs` | Programa académico con su nivel (`MASTER`, `UNDERGRADUATE`…). |
 | `ProgramMembership` | `program_memberships` | Vincula coordinadores y docentes con sus programas. |
 | `AcademicPeriod` | `academic_periods` | Periodo con fechas, `advisoryDeadline` y estado. |
@@ -83,6 +83,13 @@ asesoría, tomando el que contiene la fecha o, si ninguno la contiene, el activo
 Las fechas académicas (asesorías, periodos, vencimientos) son `@db.Date`: días
 de calendario, sin hora ni zona. Las marcas de tiempo del sistema
 (`createdAt`, `confirmedAt`, `assignedAt`) sí son `DateTime` completos.
+
+### El programa de un estudiante vive en su perfil
+
+`ProgramMembership` vincula a **coordinación y docentes** con los programas que
+atienden. Un estudiante no necesita membresía: su programa es un dato de
+`StudentProfile`. Cualquier consulta que pregunte "quién pertenece a este
+programa" tiene que mirar las dos cosas.
 
 ### Nada se borra
 

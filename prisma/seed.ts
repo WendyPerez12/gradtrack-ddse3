@@ -218,6 +218,19 @@ async function main() {
     },
   });
 
+  // Cuenta recién creada por administración: entra con una contraseña temporal
+  // y el sistema la obliga a cambiarla. Sirve para demostrar ese flujo.
+  await prisma.user.create({
+    data: {
+      name: "Rocío Palacios Meza",
+      email: "nuevo.docente@gradtrack.test",
+      passwordHash: await hash("Aula2026"),
+      role: "DIRECTOR",
+      mustChangePassword: true,
+      memberships: { create: [{ programId: educacion.id, role: "DIRECTOR" }] },
+    },
+  });
+
   const directorIng = await prisma.user.create({
     data: {
       name: "Sara Quintero",
@@ -1260,6 +1273,7 @@ async function main() {
   console.log(`    estudiante1@gradtrack.test    ${PASSWORDS.estudiante}  (al día)`);
   console.log(`    estudiante2@gradtrack.test    ${PASSWORDS.estudiante}  (seguimiento)`);
   console.log(`    estudiante3@gradtrack.test    ${PASSWORDS.estudiante}  (alerta)`);
+  console.log("    nuevo.docente@gradtrack.test  Aula2026        (contraseña temporal)");
   console.log(`    admin usa ${admin.email}\n`);
 }
 

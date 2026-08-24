@@ -11,7 +11,9 @@ export default defineConfig({
   workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "line" : [["list"], ["html", { open: "never" }]],
-  timeout: 60_000,
+  // En modo desarrollo Next compila cada ruta la primera vez que se visita:
+  // el margen absorbe esa compilación. Contra `pnpm start` la suite vuela.
+  timeout: 90_000,
   expect: { timeout: 10_000 },
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",

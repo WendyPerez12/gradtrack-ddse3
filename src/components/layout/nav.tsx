@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import {
   BellRing,
   CalendarCheck,
+  CircleUser,
   FileSearch,
   GraduationCap,
   LayoutDashboard,
   Settings,
   TriangleAlert,
+  Users,
 } from "lucide-react";
 import type { NavItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
@@ -22,6 +24,8 @@ const ICONS = {
   report: FileSearch,
   settings: Settings,
   audit: BellRing,
+  users: Users,
+  account: CircleUser,
 } as const;
 
 export function NavLinks({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {

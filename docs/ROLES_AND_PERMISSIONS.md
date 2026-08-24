@@ -43,6 +43,10 @@ permisos se resuelven por su relación con cada trabajo, no por su cargo.
 | Reportes y exportación CSV | Sí | Sus programas | No | No | No |
 | Configurar umbrales del programa | Sí | Sus programas | No | No | No |
 | Ver auditoría | Sí | No | No | No | No |
+| Consultar el directorio de personas | Sí | Sus programas | No | No | No |
+| Crear, editar o desactivar cuentas | Sí | No | No | No | No |
+| Asignar contraseña temporal a otro | Sí | No | No | No | No |
+| Cambiar la contraseña propia | Sí | Sí | Sí | Sí | Sí |
 
 «activo» significa que la supervisión está vigente: un director anterior conserva
 la lectura del trabajo, pero ya no puede escribir en él.
@@ -55,6 +59,17 @@ la lectura del trabajo, pero ya no puede escribir en él.
 2. **El estudiante no marca asesorías.** Puede verlo todo, pero no registra ni
    confirma nada. Si más adelante se quiere que solicite asesorías, el modelo ya
    lo soporta (la asesoría guarda quién la creó).
+
+## Contraseñas
+
+- Las crea administración y siempre nacen **temporales**: el titular debe
+  cambiarlas en el primer ingreso, y hasta entonces el `middleware` lo devuelve
+  a **Mi cuenta** sin importar a dónde intente ir.
+- La contraseña propia se cambia verificando la anterior.
+- No existe recuperación por correo porque no hay canal configurado: quien la
+  olvida pide a administración una temporal. Cuando se implemente el canal de
+  correo, el flujo de autoservicio se apoya en el mismo mecanismo.
+- Ninguna contraseña se registra en la auditoría; solo el hecho del cambio.
 
 ## Alcance por programa
 

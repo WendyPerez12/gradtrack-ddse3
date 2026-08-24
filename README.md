@@ -140,6 +140,7 @@ Creadas por `pnpm db:seed`. **Solo para desarrollo.**
 | Estudiante 1 — al día | `estudiante1@gradtrack.test` | `Estudiante123*` |
 | Estudiante 2 — seguimiento | `estudiante2@gradtrack.test` | `Estudiante123*` |
 | Estudiante 3 — alerta | `estudiante3@gradtrack.test` | `Estudiante123*` |
+| Docente con contraseña temporal | `nuevo.docente@gradtrack.test` | `Aula2026` |
 | Estudiantes 4 a 11 | `estudiante4..11@gradtrack.test` | `Estudiante123*` |
 | Cohorte completa (14) | `cohorte1..14@gradtrack.test` | `Estudiante123*` |
 | Especialización (3) | `ege1..3@gradtrack.test` | `Estudiante123*` |
@@ -173,6 +174,28 @@ Los datos de demostración cubren **todo** lo que el sistema sabe representar:
 5. Entra como **estudiante**: verás el historial y tus compromisos, sin poder
    modificar nada.
 6. Vuelve como coordinador: los indicadores y el semáforo ya reflejan el cambio.
+
+---
+
+## Gestión de cuentas
+
+Las cuentas las crea la **administración del sistema** desde **Usuarios**; no hay
+registro público. Al crear una cuenta o restablecer una contraseña se asigna una
+**contraseña temporal**: la persona entra con ella y el sistema no la deja pasar
+a ninguna otra pantalla hasta que la cambie.
+
+| Situación | Qué hacer |
+|---|---|
+| Entra un estudiante nuevo | Administración → **Usuarios** → **Nueva cuenta**, rol Estudiante, programa, código y semestre |
+| Llega un docente | Igual, con rol Docente y los programas donde va a dirigir |
+| Alguien olvidó su contraseña | Administración → **Usuarios** → **Contraseña**, y se le entrega la temporal por un canal seguro |
+| Alguien se retira | **Desactivar**. La cuenta no se borra: el historial académico se conserva y puede reactivarse |
+
+Una cuenta que dirige trabajos activos no se puede desactivar sin reasignar
+antes esas direcciones: el sistema lo impide y dice cuántas son.
+
+La coordinación **consulta** el directorio de sus programas, pero no gestiona
+cuentas. Cada persona cambia su propia contraseña en **Mi cuenta**.
 
 ---
 
@@ -242,8 +265,6 @@ antes de ponerlo a operar con estudiantes de verdad falta lo siguiente.
 
 | Falta | Por qué importa |
 |---|---|
-| **Administración de usuarios** | Hoy las cuentas se crean con el seed o entrando a la base. Nadie puede dar de alta a un estudiante desde la interfaz. |
-| **Cambio y recuperación de contraseña** | Un usuario no puede cambiar la suya, y si la olvida no hay forma de recuperarla sin intervención técnica. |
 | **Secreto de sesión real** | El `.env` de desarrollo trae un valor de ejemplo. En el servidor hay que generar uno con `openssl rand -base64 32`. |
 | **HTTPS y dominio** | Las cookies de sesión solo viajan seguras sobre HTTPS. Hay que definir `NEXTAUTH_URL` con el dominio real y servir detrás de TLS. |
 | **Respaldos de la base** | No hay política de copias ni de restauración. |
@@ -251,7 +272,7 @@ antes de ponerlo a operar con estudiantes de verdad falta lo siguiente.
 
 ### Importante, pero no bloqueante
 
-- **Notificaciones por correo**: hoy las alertas solo se ven entrando al sistema.
+- **Notificaciones por correo**: hoy las alertas solo se ven entrando al sistema, y la recuperación de contraseña es asistida (la administración asigna una temporal) porque no hay canal para un enlace de recuperación.
 - **Monitoreo y registro de errores** en el servidor.
 - **Integración continua** que corra `lint`, `typecheck`, `test` y `build` en cada cambio, con una base de datos propia para las pruebas (la suite E2E **borra y resiembra** la base que apunte `DATABASE_URL`).
 - **Límite de intentos por instancia**: el contador vive en memoria; con varios servidores hay que moverlo a Redis.

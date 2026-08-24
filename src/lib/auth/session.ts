@@ -13,6 +13,7 @@ export async function getCurrentActor(): Promise<Actor | null> {
     role: session.user.role,
     programIds: session.user.programIds ?? [],
     studentProfileId: session.user.studentProfileId ?? null,
+    mustChangePassword: Boolean(session.user.mustChangePassword),
   };
 }
 

@@ -69,17 +69,23 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           programIds: [...programIds],
           studentProfileId: user.studentProfile?.id ?? null,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.programIds = user.programIds;
         token.studentProfileId = user.studentProfileId;
+        token.mustChangePassword = user.mustChangePassword;
+      }
+      // Tras cambiar la contraseña, la sesión se refresca sin volver a entrar.
+      if (trigger === "update" && session?.mustChangePassword === false) {
+        token.mustChangePassword = false;
       }
       return token;
     },
@@ -89,6 +95,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role;
         session.user.programIds = token.programIds ?? [];
         session.user.studentProfileId = token.studentProfileId ?? null;
+        session.user.mustChangePassword = Boolean(token.mustChangePassword);
       }
       return session;
     },

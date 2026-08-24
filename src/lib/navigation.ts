@@ -3,7 +3,7 @@ import type { ActorRole } from "@/lib/permissions/rules";
 export interface NavItem {
   href: string;
   label: string;
-  icon: "panel" | "thesis" | "advisory" | "alert" | "report" | "settings" | "audit";
+  icon: "panel" | "thesis" | "advisory" | "alert" | "report" | "settings" | "audit" | "users" | "account";
   roles: ActorRole[];
 }
 
@@ -40,12 +40,24 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["ADMIN", "COORDINADOR"],
   },
   {
+    href: "/usuarios",
+    label: "Usuarios",
+    icon: "users",
+    roles: ["ADMIN", "COORDINADOR"],
+  },
+  {
     href: "/configuracion",
     label: "Configuración",
     icon: "settings",
     roles: ["ADMIN", "COORDINADOR"],
   },
   { href: "/auditoria", label: "Auditoría", icon: "audit", roles: ["ADMIN"] },
+  {
+    href: "/mi-cuenta",
+    label: "Mi cuenta",
+    icon: "account",
+    roles: ["ADMIN", "COORDINADOR", "DIRECTOR", "CODIRECTOR", "ESTUDIANTE"],
+  },
 ];
 
 export function navItemsFor(role: ActorRole): NavItem[] {

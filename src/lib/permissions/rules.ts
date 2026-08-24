@@ -16,6 +16,8 @@ export interface Actor {
   programIds: string[];
   /** Perfil de estudiante, si la cuenta es de un estudiante. */
   studentProfileId: string | null;
+  /** La contraseña la fijó administración y debe cambiarse. */
+  mustChangePassword?: boolean;
 }
 
 export interface ThesisAccessContext {
@@ -75,6 +77,22 @@ export function canUserViewProgram(actor: Actor, programId: string): boolean {
 /** ¿Puede editar la configuración de umbrales del programa? (§25) */
 export function canUserEditProgramSettings(actor: Actor, programId: string): boolean {
   return isAdmin(actor) || coordinates(actor, programId);
+}
+
+/**
+ * Gestión de cuentas: crear, editar, activar, desactivar y restablecer
+ * contraseñas. Reservada a administración (§11).
+ */
+export function canUserManageUsers(actor: Actor): boolean {
+  return actor.role === "ADMIN";
+}
+
+/**
+ * Consultar el directorio de personas. La coordinación puede ver a quienes
+ * pertenecen a sus programas, sin poder modificarlos.
+ */
+export function canUserViewUsers(actor: Actor): boolean {
+  return actor.role === "ADMIN" || actor.role === "COORDINADOR";
 }
 
 /** Programas sobre los que el actor puede consultar información. */

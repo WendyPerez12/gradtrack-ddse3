@@ -129,6 +129,7 @@ enum AuditAction {
   USER_DEACTIVATED
   USER_REACTIVATED
   USER_PASSWORD_RESET
+  USER_PASSWORD_CHANGED
 }
 
 enum NotificationType {
@@ -151,6 +152,10 @@ model User {
   passwordHash String
   role         UserRole
   active       Boolean  @default(true)
+  /// Contraseña temporal fijada por administración: el sistema obliga a
+  /// cambiarla en el siguiente ingreso.
+  mustChangePassword Boolean   @default(false)
+  passwordUpdatedAt  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
