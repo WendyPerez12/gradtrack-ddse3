@@ -106,6 +106,10 @@ pnpm test:e2e    # extremo a extremo (Playwright); levanta la app y siembra la b
 Las pruebas E2E ejecutan el seed antes de correr, así que **sobrescriben los datos
 de la base configurada en `.env`**. Úsalas contra una base de desarrollo.
 
+Además levantan la aplicación con `pnpm dev`, y el modo desarrollo **sobrescribe
+el build de producción** (ambos usan `.next`). Si estabas sirviendo con
+`pnpm start`, después de correr las pruebas hay que volver a `pnpm build`.
+
 ## Build de producción
 
 ```bash
@@ -251,6 +255,7 @@ desde el portátil de otra persona conectada a la misma red.
 | `lock file "postmaster.pid" already exists` | PostgreSQL quedó mal apagado y dejó un archivo huérfano | Verifica que no haya un proceso real con ese PID (`ps -p <PID>`); si no lo hay, borra `/opt/homebrew/var/postgresql@15/postmaster.pid` y arranca otra vez |
 | `Port 3000 is already in use` | Quedó una instancia anterior | `lsof -ti:3000 \| xargs kill -9` |
 | Todo responde 404 de un momento a otro | Se corrió `pnpm build` con `pnpm dev` levantado | Detén el servidor y vuelve a ejecutar `pnpm dev` |
+| `Could not find a production build` al hacer `pnpm start` | Algo corrió `next dev` después del build: ambos usan la carpeta `.next` y el modo desarrollo la sobrescribe. Le pasa, por ejemplo, a `pnpm test:e2e` | Vuelve a ejecutar `pnpm build` y luego `pnpm start` |
 | `Unknown argument ...` de Prisma | Se aplicó una migración con el servidor corriendo | Detén el servidor, `pnpm prisma generate`, y levántalo de nuevo |
 
 ---
