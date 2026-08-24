@@ -176,6 +176,91 @@ Los datos de demostración cubren **todo** lo que el sistema sabe representar:
 
 ---
 
+## Levantarlo tú mismo
+
+### Cada vez que enciendes el computador
+
+```bash
+# 1. Arrancar PostgreSQL (solo si no está corriendo)
+brew services start postgresql@15
+
+# 2. Ir al proyecto y levantar la aplicación
+cd ~/gradtrack
+pnpm dev
+```
+
+Abre <http://localhost:3000> e inicia sesión con las credenciales de arriba.
+Para detenerlo: `Ctrl + C` en la terminal donde quedó corriendo.
+
+### Modo producción en la misma máquina
+
+Más rápido que `pnpm dev` y es lo que realmente se despliega:
+
+```bash
+cd ~/gradtrack
+pnpm build     # compila (no lo ejecutes con `pnpm dev` corriendo)
+pnpm start     # sirve en http://localhost:3000
+```
+
+### Volver a dejar los datos de demostración como al principio
+
+```bash
+pnpm db:seed
+```
+
+Borra lo que hayas capturado durante la demostración y vuelve a sembrar los
+escenarios. Úsalo antes de cada presentación.
+
+### Desde otro equipo de la misma red
+
+`pnpm dev` imprime una segunda dirección, del estilo
+`http://192.168.1.42:3000`. Sirve para abrir el sistema desde un celular o
+desde el portátil de otra persona conectada a la misma red.
+
+---
+
+## Problemas frecuentes
+
+| Síntoma | Qué pasó | Solución |
+|---|---|---|
+| `pnpm: command not found` | Falta habilitar pnpm | `corepack enable && corepack prepare pnpm@9.15.9 --activate` |
+| `Can't reach database server` | PostgreSQL apagado | `brew services start postgresql@15` |
+| `lock file "postmaster.pid" already exists` | PostgreSQL quedó mal apagado y dejó un archivo huérfano | Verifica que no haya un proceso real con ese PID (`ps -p <PID>`); si no lo hay, borra `/opt/homebrew/var/postgresql@15/postmaster.pid` y arranca otra vez |
+| `Port 3000 is already in use` | Quedó una instancia anterior | `lsof -ti:3000 \| xargs kill -9` |
+| Todo responde 404 de un momento a otro | Se corrió `pnpm build` con `pnpm dev` levantado | Detén el servidor y vuelve a ejecutar `pnpm dev` |
+| `Unknown argument ...` de Prisma | Se aplicó una migración con el servidor corriendo | Detén el servidor, `pnpm prisma generate`, y levántalo de nuevo |
+
+---
+
+## Estado del proyecto
+
+**Esto es un MVP verificado, no un sistema en producción.** Funciona de punta a
+punta, tiene pruebas y aguanta una demostración real ante la coordinación, pero
+antes de ponerlo a operar con estudiantes de verdad falta lo siguiente.
+
+### Bloqueantes
+
+| Falta | Por qué importa |
+|---|---|
+| **Administración de usuarios** | Hoy las cuentas se crean con el seed o entrando a la base. Nadie puede dar de alta a un estudiante desde la interfaz. |
+| **Cambio y recuperación de contraseña** | Un usuario no puede cambiar la suya, y si la olvida no hay forma de recuperarla sin intervención técnica. |
+| **Secreto de sesión real** | El `.env` de desarrollo trae un valor de ejemplo. En el servidor hay que generar uno con `openssl rand -base64 32`. |
+| **HTTPS y dominio** | Las cookies de sesión solo viajan seguras sobre HTTPS. Hay que definir `NEXTAUTH_URL` con el dominio real y servir detrás de TLS. |
+| **Respaldos de la base** | No hay política de copias ni de restauración. |
+| **Tratamiento de datos personales** | El sistema guarda datos de estudiantes y docentes: la institución debe definir política de privacidad, consentimiento y retención (Ley 1581 de 2012). |
+
+### Importante, pero no bloqueante
+
+- **Notificaciones por correo**: hoy las alertas solo se ven entrando al sistema.
+- **Monitoreo y registro de errores** en el servidor.
+- **Integración continua** que corra `lint`, `typecheck`, `test` y `build` en cada cambio, con una base de datos propia para las pruebas (la suite E2E **borra y resiembra** la base que apunte `DATABASE_URL`).
+- **Límite de intentos por instancia**: el contador vive en memoria; con varios servidores hay que moverlo a Redis.
+- **Rendimiento a escala**: el filtrado y el ordenamiento por estado se resuelven en memoria porque el semáforo es estado derivado. Correcto para cientos de trabajos; con miles hay que precalcular.
+
+Ver [docs/ROADMAP.md](docs/ROADMAP.md) para el detalle.
+
+---
+
 ## Documentación
 
 | Documento | Contenido |
