@@ -107,6 +107,12 @@ de asesorías o supervisión, y manualmente desde **Recalcular alertas**.
 - Cambiar el id en la URL no revela nada: si el actor no tiene acceso, la
   respuesta es *no encontrado*, no *prohibido*.
 - Identificadores `cuid()`, nunca secuenciales.
+- **Parámetros de URL saneados**: cualquier valor que vaya a una consulta pasa
+  por una lista blanca (`src/lib/validations/search-params.ts`). Un `?estado=FOO`
+  se ignora en vez de llegar a Prisma y romper la página.
+- **Límite de intentos de inicio de sesión**: cinco fallos por correo en quince
+  minutos. El contador vive en memoria del proceso, aislado en
+  `src/lib/auth/rate-limit.ts` para que pasar a Redis sea un cambio de un archivo.
 - Los errores se traducen a mensajes para personas; el detalle técnico solo se
   registra en el servidor.
 

@@ -40,7 +40,10 @@ export function Modal({
       onClick={(event) => {
         if (event.target === ref.current) onClose();
       }}
-      className={`w-[calc(100%-2rem)] ${widthClass} rounded-xl border border-border bg-surface p-0 text-ink shadow-xl backdrop:bg-[rgba(15,27,45,0.45)]`}
+      /* `m-auto` es lo que centra un <dialog> modal: el navegador lo hace con
+         `margin: auto`, pero el preflight de Tailwind pone `margin: 0` en todo
+         y lo dejaría pegado a la esquina superior izquierda. */
+      className={`m-auto w-[calc(100%-2rem)] ${widthClass} rounded-xl border border-border bg-surface p-0 text-ink shadow-xl backdrop:bg-[rgba(15,27,45,0.45)]`}
     >
       {open ? (
         <div className="flex max-h-[85vh] flex-col">

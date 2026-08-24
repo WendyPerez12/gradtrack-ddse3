@@ -1,10 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
+import { CheckboxInput, FormError, TextInput } from "@/components/ui/form";
 import { useToast } from "@/components/ui/toast";
-import { activatePeriodAction } from "@/app/(app)/configuracion/actions";
+import { activatePeriodAction, createPeriodAction } from "@/app/(app)/configuracion/actions";
 
 interface PeriodRow {
   id: string;
@@ -25,12 +27,47 @@ export function PeriodList({ programId, periods }: { programId: string; periods:
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   const format = (iso: string) => new Date(iso).toLocaleDateString("es-CO", { timeZone: "UTC" });
 
+  function onCreate(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setError(null);
+    setFieldErrors({});
+
+    startTransition(async () => {
+      const result = await createPeriodAction({
+        programId,
+        name: String(form.get("name") ?? ""),
+        startDate: String(form.get("startDate") ?? ""),
+        endDate: String(form.get("endDate") ?? ""),
+        advisoryDeadline: String(form.get("advisoryDeadline") ?? ""),
+        activate: form.get("activate") === "on",
+      });
+
+      if (!result.ok) {
+        setError(result.error);
+        setFieldErrors(result.fieldErrors ?? {});
+        return;
+      }
+      toast.show(result.message ?? "Periodo creado.");
+      setOpen(false);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs font-medium tracking-wide text-ink-faint uppercase">Periodos académicos</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-medium tracking-wide text-ink-faint uppercase">Periodos académicos</p>
+        <Button type="button" size="sm" variant="secondary" onClick={() => setOpen(true)}>
+          Nuevo periodo
+        </Button>
+      </div>
       {periods.length === 0 ? (
         <p className="text-sm text-ink-soft">Este programa aún no tiene periodos registrados.</p>
       ) : (
@@ -73,6 +110,58 @@ export function PeriodList({ programId, periods }: { programId: string; periods:
       <p className="text-xs text-ink-faint">
         El periodo activo define qué asesorías cuentan para el mínimo y desde cuándo se miden las alertas.
       </p>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Nuevo periodo académico"
+        description="Al abrir el semestre siguiente, las asesorías nuevas empiezan a contar contra él."
+        width="sm"
+      >
+        <form onSubmit={onCreate} className="flex flex-col gap-4">
+          <FormError message={error} />
+          <TextInput
+            label="Nombre"
+            name="name"
+            required
+            placeholder="2027-1"
+            hint="Como lo nombra el programa."
+            error={fieldErrors.name?.[0]}
+          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextInput
+              label="Fecha de inicio"
+              name="startDate"
+              type="date"
+              required
+              error={fieldErrors.startDate?.[0]}
+            />
+            <TextInput
+              label="Fecha de cierre"
+              name="endDate"
+              type="date"
+              required
+              error={fieldErrors.endDate?.[0]}
+            />
+          </div>
+          <TextInput
+            label="Fecha límite de asesorías"
+            name="advisoryDeadline"
+            type="date"
+            hint="Opcional. Si se deja vacía se usa la fecha de cierre."
+            error={fieldErrors.advisoryDeadline?.[0]}
+          />
+          <CheckboxInput label="Activarlo ahora (cierra el periodo vigente)" name="activate" />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={pending}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Creando…" : "Crear periodo"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

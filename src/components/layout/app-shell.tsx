@@ -52,6 +52,12 @@ export function AppShell({
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+      <a
+        href="#contenido"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-brand-contrast"
+      >
+        Saltar al contenido
+      </a>
       <aside className="hidden lg:block">
         <div className="sticky top-0 h-screen">{sidebar}</div>
       </aside>
@@ -97,7 +103,9 @@ export function AppShell({
           </p>
           <div className="ml-auto flex items-center gap-2">{notifications}</div>
         </header>
-        <main className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">{children}</main>
+        <main id="contenido" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 lg:px-8 lg:py-8">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ import { EmptyState } from "@/components/ui/states";
 import { AdvisoryTimeline } from "@/components/advisory/advisory-timeline";
 import { AdvisoryActions } from "@/components/advisory/advisory-actions";
 import { ScheduleAdvisoryButton } from "@/components/advisory/schedule-advisory-button";
+import { AddCommitmentButton } from "@/components/advisory/add-commitment-button";
+import { EditThesisButton } from "@/components/thesis/edit-thesis-button";
 import { CommitmentControls } from "@/components/advisory/commitment-controls";
 import { SupervisionPanel } from "@/components/thesis/supervision-panel";
 import { AlertActions } from "@/components/alerts/alert-actions";
@@ -102,7 +104,17 @@ export default async function ThesisDetailPage({ params }: { params: Promise<{ i
         title={detail.student.user.name}
         description={detail.title}
         actions={
-          canManage ? <ScheduleAdvisoryButton thesisId={detail.id} /> : undefined
+          <>
+            {canAssign ? (
+              <EditThesisButton
+                thesisId={detail.id}
+                title={detail.title}
+                description={detail.description}
+                status={detail.status}
+              />
+            ) : null}
+            {canManage ? <ScheduleAdvisoryButton thesisId={detail.id} /> : null}
+          </>
         }
       />
 
@@ -211,7 +223,9 @@ export default async function ThesisDetailPage({ params }: { params: Promise<{ i
                         ) : null}
                         <p className="mt-1 text-xs text-ink-faint">
                           {ADVISORY_STATUS_LABEL[advisory.status]} · periodo {advisory.period.name}
-                          {advisory.confirmedBy ? ` · confirmada por ${advisory.confirmedBy.name}` : ""}
+                          {advisory.confirmedBy
+                            ? ` · ${advisory.status === "COMPLETED" ? "confirmada" : "registrada"} por ${advisory.confirmedBy.name}`
+                            : ""}
                         </p>
                         {advisory.attendances.length > 0 ? (
                           <p className="mt-1 text-xs text-ink-faint">
@@ -222,18 +236,23 @@ export default async function ThesisDetailPage({ params }: { params: Promise<{ i
                           </p>
                         ) : null}
                       </div>
-                      <AdvisoryActions
-                        advisory={{
-                          id: advisory.id,
-                          status: advisory.status,
-                          scheduledDate: formatShortDate(advisory.scheduledDate),
-                          topic: advisory.topic,
-                          mode: advisory.mode,
-                        }}
-                        hasCodirector={Boolean(row.codirector)}
-                        canManage={canManage}
-                        canConfirm={canConfirm}
-                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <AdvisoryActions
+                          advisory={{
+                            id: advisory.id,
+                            status: advisory.status,
+                            scheduledDate: formatShortDate(advisory.scheduledDate),
+                            topic: advisory.topic,
+                            mode: advisory.mode,
+                          }}
+                          hasCodirector={Boolean(row.codirector)}
+                          canManage={canManage}
+                          canConfirm={canConfirm}
+                        />
+                        {canManage && advisory.status === "COMPLETED" ? (
+                          <AddCommitmentButton advisoryId={advisory.id} />
+                        ) : null}
+                      </div>
                     </div>
 
                     {advisory.commitments.length > 0 ? (

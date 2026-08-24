@@ -118,7 +118,8 @@ export function AdvisoryTimeline({ advisories }: { advisories: TimelineAdvisory[
               ) : null}
               {advisory.confirmedBy ? (
                 <p className="mt-1 text-xs text-ink-faint">
-                  Confirmada por {advisory.confirmedBy.name}
+                  {advisory.status === "COMPLETED" ? "Confirmada" : "Registrada"} por{" "}
+                  {advisory.confirmedBy.name}
                 </p>
               ) : null}
             </div>

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
 import { loginSchema } from "@/lib/validations/auth";
 import { recordAudit } from "@/modules/audit/audit-service";
+import { clearFailures, isLocked, registerFailure } from "@/lib/auth/rate-limit";
 
 /**
  * Configuración de Auth.js / NextAuth (v4) con credenciales.
@@ -24,6 +25,9 @@ export const authOptions: NextAuthOptions = {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
+        // Freno a la fuerza bruta antes de tocar la base.
+        if (isLocked(parsed.data.email)) return null;
+
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email.toLowerCase() },
           include: {
@@ -36,11 +40,17 @@ export const authOptions: NextAuthOptions = {
         // no revelamos qué correos existen.
         if (!user || !user.active) {
           await bcrypt.compare(parsed.data.password, "$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalid");
+          registerFailure(parsed.data.email);
           return null;
         }
 
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        if (!valid) return null;
+        if (!valid) {
+          registerFailure(parsed.data.email);
+          return null;
+        }
+
+        clearFailures(parsed.data.email);
 
         const programIds = new Set(user.memberships.map((m) => m.programId));
         if (user.studentProfile?.programId) programIds.add(user.studentProfile.programId);

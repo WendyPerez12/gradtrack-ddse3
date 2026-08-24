@@ -9,7 +9,7 @@ compromisos, alertas y dashboards. Lo que sigue, en orden de valor.
 |---|---|
 | **Notificaciones por correo** | Implementar un `EmailChannel` en `NotificationService`. La arquitectura ya lo admite sin tocar los servicios de negocio. Resumen semanal a coordinación y aviso al director cuando su dirigido entra en rojo. |
 | **Autenticación institucional** | Proveedor de Google Workspace o Microsoft 365 en Auth.js, conservando el rol en la base. |
-| **Administración de usuarios** | Altas, bajas lógicas y cambio de rol desde la interfaz; hoy se hacen por seed o base de datos. |
+| **Administración de usuarios** | Altas, bajas lógicas y cambio de rol desde la interfaz; hoy se hacen por seed o base de datos. Es el hueco más grande que queda para usar el sistema con gente real. |
 | **Carga masiva** | Importar estudiantes, docentes y cohortes desde CSV al abrir cada periodo. |
 | **Solicitud de asesoría por el estudiante** | El estudiante propone fecha y el director confirma. El modelo ya guarda quién creó cada asesoría. |
 
@@ -51,6 +51,9 @@ compromisos, alertas y dashboards. Lo que sigue, en orden de valor.
 - El filtrado por estado y el ordenamiento se hacen en memoria porque el semáforo
   es estado derivado. Con miles de trabajos habrá que materializar una vista o
   precalcular el estado por periodo.
-- La sincronización de alertas recorre los trabajos uno por uno; con volúmenes
-  altos conviene un trabajo programado (cron) por programa.
+- La sincronización de alertas escribe trabajo por trabajo (ya sin recargar el
+  estado de cada uno); con volúmenes altos conviene un trabajo programado (cron)
+  por programa.
+- El límite de intentos de inicio de sesión es por proceso: con varias instancias
+  hay que moverlo a Redis o a una tabla.
 - No hay aún pruebas de integración sobre las Server Actions; las cubren las E2E.

@@ -4,7 +4,11 @@ import { NotFoundError } from "@/lib/errors";
 import type { Actor } from "@/lib/permissions/rules";
 import { recordAudit } from "@/modules/audit/audit-service";
 import { notificationService } from "@/modules/notifications/notification-service";
-import { getMonitoringRow, getMonitoringRows } from "@/modules/monitoring/thesis-monitoring";
+import {
+  getMonitoringRow,
+  getMonitoringRows,
+  type ThesisMonitoringRow,
+} from "@/modules/monitoring/thesis-monitoring";
 
 /**
  * Sincroniza las alertas persistidas de un trabajo con lo que dictan las reglas.
@@ -16,9 +20,11 @@ import { getMonitoringRow, getMonitoringRows } from "@/modules/monitoring/thesis
  */
 export async function syncThesisAlerts(
   thesisId: string,
-  options: { currentDate?: Date } = {},
+  options: { currentDate?: Date; row?: ThesisMonitoringRow } = {},
 ): Promise<{ created: number; resolved: number }> {
-  const row = await getMonitoringRow(thesisId, options);
+  // `row` permite reutilizar un cálculo ya hecho y evitar una consulta por
+  // trabajo cuando se sincroniza un programa completo.
+  const row = options.row ?? (await getMonitoringRow(thesisId, options));
   const evaluated = row.monitoring.alerts;
 
   const active = await prisma.alert.findMany({
@@ -93,7 +99,7 @@ export async function syncAlertsForScope(
   let created = 0;
   let resolved = 0;
   for (const row of rows) {
-    const result = await syncThesisAlerts(row.thesisId, options);
+    const result = await syncThesisAlerts(row.thesisId, { ...options, row });
     created += result.created;
     resolved += result.resolved;
   }

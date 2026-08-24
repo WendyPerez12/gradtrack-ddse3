@@ -10,6 +10,7 @@ import { requireActor } from "@/lib/auth/session";
 import { thesisScopeWhere } from "@/lib/permissions/guards";
 import { ADVISORY_MODE_LABEL, ADVISORY_STATUS_LABEL } from "@/lib/validations/advisory";
 import { listAdvisories } from "@/modules/advisories/advisory-service";
+import { ADVISORY_STATUSES, pickEnum } from "@/lib/validations/search-params";
 
 export const metadata: Metadata = { title: "Asesorías" };
 
@@ -27,25 +28,56 @@ const STATUSES = [
 export default async function AdvisoriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; page?: string }>;
+  searchParams: Promise<{ estado?: string; page?: string; q?: string }>;
 }) {
   const actor = await requireActor();
   const params = await searchParams;
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
 
+  const estado = pickEnum(params.estado, ADVISORY_STATUSES);
+
   const result = await listAdvisories(
     {
       thesis: thesisScopeWhere(actor),
-      status: params.estado ? (params.estado as Row["status"]) : undefined,
+      status: estado,
+      ...(params.q?.trim()
+        ? {
+            OR: [
+              { topic: { contains: params.q.trim(), mode: "insensitive" as const } },
+              { thesis: { title: { contains: params.q.trim(), mode: "insensitive" as const } } },
+              {
+                thesis: {
+                  student: { user: { name: { contains: params.q.trim(), mode: "insensitive" as const } } },
+                },
+              },
+              {
+                thesis: {
+                  supervisions: {
+                    some: { user: { name: { contains: params.q.trim(), mode: "insensitive" as const } } },
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
     },
     { page },
   );
 
   const hrefFor = (nextPage: number) => {
     const search = new URLSearchParams();
-    if (params.estado) search.set("estado", params.estado);
+    if (estado) search.set("estado", estado);
+    if (params.q) search.set("q", params.q);
     search.set("page", String(nextPage));
     return `/asesorias?${search.toString()}`;
+  };
+
+  const hrefForStatus = (value: string) => {
+    const search = new URLSearchParams();
+    if (value) search.set("estado", value);
+    if (params.q) search.set("q", params.q);
+    const query = search.toString();
+    return query ? `/asesorias?${query}` : "/asesorias";
   };
 
   const columns: Column<Row>[] = [
@@ -99,13 +131,28 @@ export default async function AdvisoriesPage({
         description="Todas las sesiones registradas en tu alcance. Solo las realizadas cuentan para el mínimo del periodo."
       />
 
+      <form className="mb-4 max-w-md" role="search">
+        <label htmlFor="buscar-asesorias" className="sr-only">
+          Buscar por estudiante, director, tema o título
+        </label>
+        <input
+          id="buscar-asesorias"
+          name="q"
+          type="search"
+          defaultValue={params.q ?? ""}
+          placeholder="Buscar estudiante, director, tema o título…"
+          className="h-9 w-full rounded-md border border-border-strong bg-surface px-3 text-sm"
+        />
+        {estado ? <input type="hidden" name="estado" value={estado} /> : null}
+      </form>
+
       <nav className="mb-4 flex flex-wrap gap-2" aria-label="Filtrar por estado">
         {STATUSES.map(([value, label]) => {
-          const active = (params.estado ?? "") === value;
+          const active = (estado ?? "") === value;
           return (
             <Link
               key={value || "todos"}
-              href={value ? `/asesorias?estado=${value}` : "/asesorias"}
+              href={hrefForStatus(value)}
               className={
                 active
                   ? "rounded-full bg-brand px-3 py-1.5 text-sm text-brand-contrast"

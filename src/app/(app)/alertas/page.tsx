@@ -11,6 +11,7 @@ import { requireActor } from "@/lib/auth/session";
 import { thesisScopeWhere } from "@/lib/permissions/guards";
 import { listAlerts } from "@/modules/alerts/alert-service";
 import { ALERT_TYPE_LABEL } from "@/modules/monitoring/monitoring";
+import { ALERT_STATUSES, pickEnumOr } from "@/lib/validations/search-params";
 
 export const metadata: Metadata = { title: "Alertas" };
 
@@ -27,7 +28,7 @@ export default async function AlertsPage({
 }) {
   const actor = await requireActor();
   const params = await searchParams;
-  const status = (params.estado ?? "ACTIVE") as "ACTIVE" | "RESOLVED" | "DISMISSED";
+  const status = pickEnumOr(params.estado, ALERT_STATUSES, "ACTIVE");
 
   const alerts = await listAlerts(thesisScopeWhere(actor), { status });
 

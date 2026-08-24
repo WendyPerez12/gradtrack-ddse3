@@ -26,7 +26,14 @@ export function Field({
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-medium text-ink">
         {label}
-        {required ? <span className="ml-0.5 text-risk">*</span> : null}
+        {/* Decorativo: la obligatoriedad ya la comunica el atributo `required`
+            del control. Sin aria-hidden, el lector de pantalla leería
+            "Compromiso asterisco". */}
+        {required ? (
+          <span aria-hidden="true" className="ml-0.5 text-risk">
+            *
+          </span>
+        ) : null}
       </label>
       {children}
       {hint && !error ? <p className="text-xs text-ink-faint">{hint}</p> : null}
