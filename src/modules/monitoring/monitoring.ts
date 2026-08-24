@@ -1,4 +1,4 @@
-import { daysBetween, formatShortDate, toCalendarDay } from "@/lib/dates";
+import { daysBetween, formatShortDate, toCalendarDay, toInstitutionalDay } from "@/lib/dates";
 import type {
   EvaluatedAlert,
   MonitoringAdvisory,
@@ -38,7 +38,7 @@ export function nextScheduledAdvisory(
   advisories: MonitoringAdvisory[],
   currentDate: Date,
 ): MonitoringAdvisory | null {
-  const today = toCalendarDay(currentDate);
+  const today = toInstitutionalDay(currentDate);
   const upcoming = advisories
     .filter((a) => a.status === "SCHEDULED" && toCalendarDay(a.scheduledDate) >= today)
     .sort((a, b) => toCalendarDay(a.scheduledDate).getTime() - toCalendarDay(b.scheduledDate).getTime());
@@ -50,7 +50,7 @@ export function overdueScheduledAdvisories(
   advisories: MonitoringAdvisory[],
   currentDate: Date,
 ): MonitoringAdvisory[] {
-  const today = toCalendarDay(currentDate);
+  const today = toInstitutionalDay(currentDate);
   return advisories
     .filter((a) => a.status === "SCHEDULED" && toCalendarDay(a.scheduledDate) < today)
     .sort((a, b) => toCalendarDay(a.scheduledDate).getTime() - toCalendarDay(b.scheduledDate).getTime());
@@ -74,7 +74,7 @@ export function evaluateAlerts(input: MonitoringInput): EvaluatedAlert[] {
   if (!thesis.hasActiveDirector) return [];
 
   const alerts: EvaluatedAlert[] = [];
-  const today = toCalendarDay(currentDate);
+  const today = toInstitutionalDay(currentDate);
   const completedCount = countCompletedAdvisories(advisories);
   const lastDate = lastCompletedAdvisoryDate(advisories);
   const deadline = deadlineOf(period);
@@ -83,7 +83,9 @@ export function evaluateAlerts(input: MonitoringInput): EvaluatedAlert[] {
 
   // --- 1. Sin primera asesoría (§27) --------------------------------------
   if (completedCount === 0) {
-    const since = toCalendarDay(thesis.assignedAt ?? period.startDate);
+    const since = thesis.assignedAt
+      ? toInstitutionalDay(thesis.assignedAt)
+      : toCalendarDay(period.startDate);
     const daysSinceStart = daysBetween(since, today);
     if (daysSinceStart > settings.warningDaysWithoutAdvisory) {
       alerts.push({
@@ -186,7 +188,7 @@ function highestSeverity(alerts: EvaluatedAlert[]): "INFO" | "WARNING" | "CRITIC
 export function getThesisMonitoringStatus(input: MonitoringInput): MonitoringResult {
   const { thesis, advisories, period, settings, currentDate } = input;
 
-  const today = toCalendarDay(currentDate);
+  const today = toInstitutionalDay(currentDate);
   const completedCount = countCompletedAdvisories(advisories);
   const requiredCount = settings.minimumAdvisoriesPerPeriod;
   const lastAdvisoryDate = lastCompletedAdvisoryDate(advisories);
