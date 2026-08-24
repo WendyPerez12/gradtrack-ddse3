@@ -9,6 +9,8 @@ declare module "next-auth" {
       programIds: string[];
       studentProfileId: string | null;
       mustChangePassword: boolean;
+      /** Momento en que se emitió la sesión, en milisegundos. */
+      sessionStartedAt: number;
     } & DefaultSession["user"];
   }
 
@@ -28,5 +30,6 @@ declare module "next-auth/jwt" {
     programIds: string[];
     studentProfileId: string | null;
     mustChangePassword: boolean;
+    sessionStartedAt: number;
   }
 }

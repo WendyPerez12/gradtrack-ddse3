@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireActor } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
-import { NotFoundError, toActionError, type ActionResult } from "@/lib/errors";
-import { requireThesisAccess, thesisScopeWhere } from "@/lib/permissions/guards";
+import { ForbiddenError, NotFoundError, toActionError, type ActionResult } from "@/lib/errors";
+import { requireAlertManagement, thesisScopeWhere } from "@/lib/permissions/guards";
 import { dismissAlert, manageAlert, syncAlertsForScope } from "@/modules/alerts/alert-service";
 
 async function requireAlertAccess(alertId: string) {
@@ -14,7 +14,8 @@ async function requireAlertAccess(alertId: string) {
     select: { thesisId: true },
   });
   if (!alert) throw new NotFoundError("La alerta no existe.");
-  await requireThesisAccess(actor, alert.thesisId);
+  // Gestionar o descartar es escritura: no basta con poder ver el trabajo.
+  await requireAlertManagement(actor, alert.thesisId);
   return { actor, thesisId: alert.thesisId };
 }
 
@@ -60,6 +61,9 @@ export async function dismissAlertAction(input: {
 export async function recalculateAlertsAction(): Promise<ActionResult<{ theses: number }>> {
   try {
     const actor = await requireActor();
+    if (actor.role === "ESTUDIANTE") {
+      throw new ForbiddenError("El recálculo de alertas lo hace la coordinación o la dirección.");
+    }
     const result = await syncAlertsForScope(thesisScopeWhere(actor));
     revalidatePath("/alertas");
     revalidatePath("/panel");

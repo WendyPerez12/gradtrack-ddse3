@@ -33,5 +33,7 @@ export const config = {
     "/auditoria/:path*",
     "/usuarios/:path*",
     "/mi-cuenta/:path*",
+    // También la API de reportes: con una contraseña temporal no se descarga nada.
+    "/api/reportes/:path*",
   ],
 };

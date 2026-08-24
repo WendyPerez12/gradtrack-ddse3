@@ -57,7 +57,7 @@ export function overdueScheduledAdvisories(
 }
 
 /** Fecha límite del periodo para cumplir el mínimo. */
-export function deadlineOf(period: MonitoringInput["period"]): Date {
+export function deadlineOf(period: NonNullable<MonitoringInput["period"]>): Date {
   return toCalendarDay(period.advisoryDeadline ?? period.endDate);
 }
 
@@ -72,6 +72,8 @@ export function evaluateAlerts(input: MonitoringInput): EvaluatedAlert[] {
   if (!settings.alertsEnabled) return [];
   if (thesis.status !== "ACTIVE") return [];
   if (!thesis.hasActiveDirector) return [];
+  // Sin periodo activo no hay plazo ni mínimo contra el cual medir.
+  if (!period) return [];
 
   const alerts: EvaluatedAlert[] = [];
   const today = toInstitutionalDay(currentDate);
@@ -200,7 +202,7 @@ export function getThesisMonitoringStatus(input: MonitoringInput): MonitoringRes
 
   const nextAdvisoryDate = next ? toCalendarDay(next.scheduledDate) : (agreedNext ?? null);
   const daysSinceLastAdvisory = lastAdvisoryDate ? daysBetween(lastAdvisoryDate, today) : null;
-  const daysUntilDeadline = daysBetween(today, deadlineOf(period));
+  const daysUntilDeadline = period ? daysBetween(today, deadlineOf(period)) : 0;
 
   const alerts = evaluateAlerts(input);
   const reasons: string[] = alerts.map((a) => a.message);
@@ -209,6 +211,13 @@ export function getThesisMonitoringStatus(input: MonitoringInput): MonitoringRes
   if (thesis.status !== "ACTIVE") {
     status = "ON_TRACK";
     reasons.push(`El trabajo no está activo (${thesis.status}).`);
+  } else if (!period) {
+    // Es un problema de configuración del programa, no del estudiante, pero
+    // tiene que verse: sin periodo abierto no hay seguimiento posible.
+    status = "FOLLOW_UP";
+    reasons.push(
+      "El programa no tiene un periodo académico activo: el cumplimiento no puede calcularse.",
+    );
   } else if (!thesis.hasActiveDirector) {
     status = "FOLLOW_UP";
     reasons.push("El trabajo no tiene director activo asignado.");

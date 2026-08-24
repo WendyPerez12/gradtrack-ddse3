@@ -4,6 +4,7 @@ import {
   canUserAccessThesis,
   canUserConfirmAdvisory,
   canUserManageAdvisories,
+  canUserManageAlerts,
   canUserManageThesisAssignment,
   type Actor,
   type ThesisAccessContext,
@@ -68,6 +69,17 @@ export async function requireAdvisoryConfirmation(
     throw new ForbiddenError(
       "Solo el director o el codirector activo pueden confirmar que la asesoría se realizó.",
     );
+  }
+  return context;
+}
+
+export async function requireAlertManagement(
+  actor: Actor,
+  thesisId: string,
+): Promise<ThesisAccessContext> {
+  const context = await requireThesisAccess(actor, thesisId);
+  if (!canUserManageAlerts(actor, context)) {
+    throw new ForbiddenError("No puedes gestionar las alertas de este trabajo.");
   }
   return context;
 }

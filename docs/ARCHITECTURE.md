@@ -100,7 +100,12 @@ de asesorías o supervisión, y manualmente desde **Recalcular alertas**.
 ## Seguridad
 
 - Contraseñas con **bcrypt** (10 rondas). `passwordHash` nunca sale del servidor.
-- Sesión JWT firmada; el rol y los programas del usuario viajan en el token.
+- Sesión JWT firmada, pero **el estado se relee de la base en cada petición**
+  (`getCurrentActor`). El token dice quién eres; la base dice si sigues activo,
+  con qué rol y en qué programas. Sin eso, desactivar una cuenta no sacaría a
+  nadie del sistema hasta que expirara su sesión.
+- Restablecer una contraseña **revoca las sesiones abiertas** de esa cuenta
+  (`sessionsRevokedAt`). Cambiar la propia no revoca nada.
 - `middleware.ts` bloquea las rutas privadas sin sesión, pero **no es la
   autorización**: cada página y cada Server Action vuelven a verificar permisos
   en el servidor.

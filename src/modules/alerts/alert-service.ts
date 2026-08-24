@@ -144,10 +144,11 @@ export async function listAlerts(
         select: {
           id: true,
           title: true,
-          student: { select: { studentCode: true, user: { select: { name: true } } } },
+          programId: true,
+          student: { select: { studentCode: true, userId: true, user: { select: { name: true } } } },
           supervisions: {
-            where: { active: true, type: "DIRECTOR" },
-            select: { user: { select: { name: true } } },
+            where: { active: true },
+            select: { userId: true, type: true, user: { select: { name: true } } },
           },
         },
       },

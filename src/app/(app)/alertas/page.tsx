@@ -9,6 +9,7 @@ import { RecalculateAlertsButton } from "@/components/alerts/recalculate-button"
 import { formatShortDate } from "@/lib/dates";
 import { requireActor } from "@/lib/auth/session";
 import { thesisScopeWhere } from "@/lib/permissions/guards";
+import { canUserManageAlerts } from "@/lib/permissions/rules";
 import { listAlerts } from "@/modules/alerts/alert-service";
 import { ALERT_TYPE_LABEL } from "@/modules/monitoring/monitoring";
 import { ALERT_STATUSES, pickEnumOr } from "@/lib/validations/search-params";
@@ -32,12 +33,23 @@ export default async function AlertsPage({
 
   const alerts = await listAlerts(thesisScopeWhere(actor), { status });
 
+  // El botón solo aparece si el servidor lo permitiría: la misma regla que
+  // aplica la Server Action, para no ofrecer acciones que van a ser negadas.
+  const puedeGestionar = (alert: (typeof alerts)[number]) =>
+    canUserManageAlerts(actor, {
+      thesisId: alert.thesis.id,
+      programId: alert.thesis.programId,
+      studentUserId: alert.thesis.student.userId,
+      activeSupervisorIds: alert.thesis.supervisions.map((s) => s.userId),
+      allSupervisorIds: alert.thesis.supervisions.map((s) => s.userId),
+    });
+
   return (
     <>
       <PageHeader
         title="Alertas tempranas"
         description="Se generan a partir de las reglas del programa. Registrar la gestión deja constancia sin cerrarlas: se resuelven solas cuando la situación cambia."
-        actions={<RecalculateAlertsButton />}
+        actions={actor.role === "ESTUDIANTE" ? undefined : <RecalculateAlertsButton />}
       />
 
       <nav className="mb-4 flex flex-wrap gap-2" aria-label="Filtrar alertas">
@@ -93,8 +105,8 @@ export default async function AlertsPage({
                     <p className="mt-1 text-sm text-ink-soft">{alert.message}</p>
                     <p className="mt-1 text-xs text-ink-faint">
                       {alert.thesis.student.studentCode}
-                      {alert.thesis.supervisions[0]
-                        ? ` · director: ${alert.thesis.supervisions[0].user.name}`
+                      {alert.thesis.supervisions.find((s) => s.type === "DIRECTOR")
+                        ? ` · director: ${alert.thesis.supervisions.find((s) => s.type === "DIRECTOR")!.user.name}`
                         : " · sin director"}
                       {" · detectada el "}
                       {formatShortDate(alert.detectedAt)}
@@ -117,7 +129,7 @@ export default async function AlertsPage({
                       </p>
                     ) : null}
                   </div>
-                  {alert.status === "ACTIVE" ? (
+                  {alert.status === "ACTIVE" && puedeGestionar(alert) ? (
                     <AlertActions alertId={alert.id} managed={Boolean(alert.managedAt)} />
                   ) : null}
                 </div>

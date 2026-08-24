@@ -51,8 +51,34 @@ export type ActionResult<T = undefined> =
   | { ok: true; data: T; message?: string }
   | { ok: false; error: string; code: AppError["code"]; fieldErrors?: Record<string, string[]> };
 
+/** Choques de restricciones de la base, traducidos a lenguaje de usuario. */
+function fromPrismaError(error: unknown): AppError | null {
+  if (typeof error !== "object" || error === null || !("code" in error)) return null;
+  const code = (error as { code?: string }).code;
+
+  // P2002: índice único. Ocurre cuando dos personas hacen lo mismo a la vez y
+  // la comprobación previa del servicio no alcanzó a verlo.
+  if (code === "P2002") {
+    return new ConflictError(
+      "Otra persona acaba de registrar algo que entra en conflicto con esta operación. Actualiza la página y vuelve a intentarlo.",
+    );
+  }
+  // P2003: llave foránea. P2025: el registro ya no existe.
+  if (code === "P2003") {
+    return new ValidationError("Alguno de los datos seleccionados ya no existe.");
+  }
+  if (code === "P2025") {
+    return new NotFoundError("El registro ya no existe: puede que alguien lo haya cambiado.");
+  }
+  return null;
+}
+
 /** Convierte cualquier excepción en un ActionResult seguro para el cliente. */
 export function toActionError(error: unknown): Extract<ActionResult, { ok: false }> {
+  const mapped = fromPrismaError(error);
+  if (mapped) {
+    return { ok: false, error: mapped.message, code: mapped.code };
+  }
   if (error instanceof ValidationError) {
     return { ok: false, error: error.message, code: error.code, fieldErrors: error.fieldErrors };
   }

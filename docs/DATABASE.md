@@ -33,7 +33,7 @@ erDiagram
 
 | Entidad | Tabla | Para qué |
 |---|---|---|
-| `User` | `users` | Cuentas. Email único, `passwordHash`, rol, bandera `active` (baja lógica) y `mustChangePassword` para las contraseñas temporales. |
+| `User` | `users` | Cuentas. Email único, `passwordHash`, rol, bandera `active` (baja lógica), `mustChangePassword` para las contraseñas temporales y `sessionsRevokedAt` para cerrar sesiones abiertas. |
 | `Program` | `programs` | Programa académico con su nivel (`MASTER`, `UNDERGRADUATE`…). |
 | `ProgramMembership` | `program_memberships` | Vincula coordinadores y docentes con sus programas. |
 | `AcademicPeriod` | `academic_periods` | Periodo con fechas, `advisoryDeadline` y estado. |

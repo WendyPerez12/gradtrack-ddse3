@@ -60,6 +60,15 @@ la lectura del trabajo, pero ya no puede escribir en él.
    confirma nada. Si más adelante se quiere que solicite asesorías, el modelo ya
    lo soporta (la asesoría guarda quién la creó).
 
+## Las alertas no las silencia quien las provoca
+
+Ver una alerta y gestionarla son permisos distintos. El estudiante ve las suyas
+—es información sobre su propio proceso— pero **nunca** puede registrarles
+gestión ni descartarlas: descartarlas lo sacaría de la bandeja de la
+coordinación durante todo el periodo, que es exactamente a quien la alerta va
+dirigida. Lo mismo aplica a un director anterior: conserva lectura del trabajo
+que dirigió, no escritura.
+
 ## Contraseñas
 
 - Las crea administración y siempre nacen **temporales**: el titular debe
@@ -70,6 +79,8 @@ la lectura del trabajo, pero ya no puede escribir en él.
   olvida pide a administración una temporal. Cuando se implemente el canal de
   correo, el flujo de autoservicio se apoya en el mismo mecanismo.
 - Ninguna contraseña se registra en la auditoría; solo el hecho del cambio.
+- Restablecer una contraseña cierra las sesiones que esa cuenta tuviera
+  abiertas. Desactivar una cuenta la expulsa en la siguiente petición.
 
 ## Alcance por programa
 

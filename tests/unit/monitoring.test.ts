@@ -352,3 +352,19 @@ describe("getThesisMonitoringStatus — semáforo (§32)", () => {
     expect(result.completedCount).toBe(1);
   });
 });
+
+describe("programa sin periodo académico activo", () => {
+  it("no inventa alertas de cumplimiento", () => {
+    // Regresión: se fabricaba un periodo que terminaba hoy, y eso disparaba
+    // "mínimo en riesgo" en todos los trabajos del programa.
+    const alerts = evaluateAlerts(input({ period: null, advisories: [] }));
+    expect(alerts).toHaveLength(0);
+  });
+
+  it("lo señala como una situación que requiere seguimiento", () => {
+    const result = getThesisMonitoringStatus(input({ period: null }));
+    expect(result.status).toBe("FOLLOW_UP");
+    expect(result.reasons.join(" ")).toContain("periodo académico activo");
+    expect(result.alerts).toHaveLength(0);
+  });
+});

@@ -17,8 +17,11 @@ parámetro. Ningún umbral está escrito en el código: todos vienen de
 | `requireNextAdvisoryDate` | false | Exigir la próxima fecha al confirmar |
 | `alertsEnabled` | true | Interruptor general del programa |
 
-Precondiciones comunes: el trabajo está `ACTIVE`, tiene **director activo** y el
-programa tiene las alertas habilitadas. Un trabajo sin director no genera
+Precondiciones comunes: el trabajo está `ACTIVE`, tiene **director activo**, el
+programa tiene un **periodo académico abierto** y las alertas habilitadas. Sin
+periodo no hay plazo ni mínimo contra el cual medir, así que no se evalúa nada:
+el trabajo aparece en amarillo con esa razón, para que la coordinación abra el
+periodo. Un trabajo sin director no genera
 alertas —no sería justo atribuírselas a nadie—, pero aparece en amarillo con la
 razón «sin director asignado» y en el indicador *Sin director* del panel.
 

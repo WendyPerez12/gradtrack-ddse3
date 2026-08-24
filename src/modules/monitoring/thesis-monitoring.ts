@@ -154,13 +154,7 @@ export async function getMonitoringRows(
         actualDate: a.actualDate,
         nextAdvisoryDate: a.nextAdvisoryDate,
       })),
-      period: period ?? {
-        id: "sin-periodo",
-        name: "Sin periodo activo",
-        startDate: thesis.assignedAt ?? thesis.createdAt,
-        endDate: currentDate,
-        advisoryDeadline: null,
-      },
+      period,
       settings,
       currentDate,
     });

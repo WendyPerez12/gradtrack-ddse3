@@ -198,7 +198,7 @@ export async function setUserActive(actor: Actor, userId: string, active: boolea
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, active: true },
+    select: { id: true, name: true, active: true, studentProfile: { select: { id: true } } },
   });
   if (!user) throw new NotFoundError("La cuenta no existe.");
 
@@ -213,7 +213,13 @@ export async function setUserActive(actor: Actor, userId: string, active: boolea
     }
   }
 
-  const updated = await prisma.user.update({ where: { id: userId }, data: { active } });
+  const updated = await prisma.$transaction(async (tx) => {
+    const result = await tx.user.update({ where: { id: userId }, data: { active } });
+    // El perfil académico sigue a la cuenta: si no, un estudiante retirado
+    // seguiría contando en los listados y en los indicadores.
+    await tx.studentProfile.updateMany({ where: { userId }, data: { active } });
+    return result;
+  });
 
   await recordAudit({
     userId: actor.id,
@@ -234,7 +240,13 @@ export async function resetPassword(actor: Actor, userId: string, password: stri
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
   await prisma.user.update({
     where: { id: userId },
-    data: { passwordHash, mustChangePassword: true, passwordUpdatedAt: new Date() },
+    data: {
+      passwordHash,
+      mustChangePassword: true,
+      passwordUpdatedAt: new Date(),
+      // La contraseña anterior ya no sirve: las sesiones abiertas tampoco.
+      sessionsRevokedAt: new Date(),
+    },
   });
 
   await recordAudit({

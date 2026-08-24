@@ -55,6 +55,17 @@ export function canUserManageAdvisories(actor: Actor, thesis: ThesisAccessContex
 }
 
 /**
+ * ¿Puede gestionar o descartar una alerta del trabajo?
+ *
+ * Es una acción de escritura, no de lectura: el estudiante ve sus alertas pero
+ * jamás puede silenciarlas, porque descartarlas lo sacaría de la bandeja de la
+ * coordinación, que es justamente a quien la alerta va dirigida.
+ */
+export function canUserManageAlerts(actor: Actor, thesis: ThesisAccessContext): boolean {
+  return canUserManageAdvisories(actor, thesis);
+}
+
+/**
  * ¿Puede confirmar que una asesoría se realizó? (§21, §41)
  * El estudiante nunca puede: la confirmación es la evidencia del proceso.
  * El coordinador tampoco en esta versión; ver docs/ROLES_AND_PERMISSIONS.md.

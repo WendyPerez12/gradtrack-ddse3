@@ -65,7 +65,12 @@ export interface MonitoringInput {
   thesis: MonitoringThesis;
   /** Asesorías del periodo evaluado (cualquier estado). */
   advisories: MonitoringAdvisory[];
-  period: MonitoringPeriod;
+  /**
+   * Periodo académico activo del programa. Puede ser `null`: un programa sin
+   * periodo abierto no tiene contra qué medir el cumplimiento, y fabricar uno
+   * produciría alertas falsas.
+   */
+  period: MonitoringPeriod | null;
   settings: MonitoringSettings;
   currentDate: Date;
 }

@@ -4,6 +4,7 @@ import {
   canUserConfirmAdvisory,
   canUserEditProgramSettings,
   canUserManageAdvisories,
+  canUserManageAlerts,
   canUserManageThesisAssignment,
   type Actor,
   type ThesisAccessContext,
@@ -118,5 +119,22 @@ describe("gestión del programa", () => {
       canUserEditProgramSettings(actor({ role: "COORDINADOR", programIds: ["prog-med"] }), "prog-med"),
     ).toBe(true);
     expect(canUserEditProgramSettings(actor({ id: "user-director" }), "prog-med")).toBe(false);
+  });
+});
+
+describe("canUserManageAlerts", () => {
+  it("el estudiante nunca puede gestionar ni descartar sus alertas", () => {
+    const student = actor({ id: "user-student", role: "ESTUDIANTE", programIds: ["prog-med"] });
+    expect(canUserAccessThesis(student, thesis)).toBe(true);
+    expect(canUserManageAlerts(student, thesis)).toBe(false);
+  });
+
+  it("un director anterior tampoco: conserva lectura, no escritura", () => {
+    expect(canUserManageAlerts(actor({ id: "user-former-director" }), thesis)).toBe(false);
+  });
+
+  it("la coordinación del programa y el director activo sí", () => {
+    expect(canUserManageAlerts(actor({ role: "COORDINADOR", programIds: ["prog-med"] }), thesis)).toBe(true);
+    expect(canUserManageAlerts(actor({ id: "user-director" }), thesis)).toBe(true);
   });
 });

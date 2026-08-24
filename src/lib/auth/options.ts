@@ -82,6 +82,7 @@ export const authOptions: NextAuthOptions = {
         token.programIds = user.programIds;
         token.studentProfileId = user.studentProfileId;
         token.mustChangePassword = user.mustChangePassword;
+        token.sessionStartedAt = Date.now();
       }
       // Tras cambiar la contraseña, la sesión se refresca sin volver a entrar.
       if (trigger === "update" && session?.mustChangePassword === false) {
@@ -96,6 +97,7 @@ export const authOptions: NextAuthOptions = {
         session.user.programIds = token.programIds ?? [];
         session.user.studentProfileId = token.studentProfileId ?? null;
         session.user.mustChangePassword = Boolean(token.mustChangePassword);
+        session.user.sessionStartedAt = token.sessionStartedAt ?? 0;
       }
       return session;
     },

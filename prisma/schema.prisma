@@ -156,6 +156,9 @@ model User {
   /// cambiarla en el siguiente ingreso.
   mustChangePassword Boolean   @default(false)
   passwordUpdatedAt  DateTime?
+  /// Momento en que administración revocó las sesiones abiertas de la cuenta
+  /// (al restablecerle la contraseña). Cambiar la propia no las revoca.
+  sessionsRevokedAt  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
