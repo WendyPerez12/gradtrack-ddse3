@@ -18,10 +18,18 @@ const prisma = new PrismaClient({ adapter });
 
 const DAY = 86_400_000;
 const today = new Date();
+/** Día calendario (para columnas `date`). */
 const day = (offset: number): Date => {
   const base = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
   return new Date(base.getTime() + offset * DAY);
 };
+
+/**
+ * Instante para columnas `DateTime`: mediodía UTC, es decir las 07:00 en
+ * Bogotá. Usar medianoche UTC haría que el historial mostrara la hora del día
+ * anterior en la zona institucional.
+ */
+const stamp = (offset: number): Date => new Date(day(offset).getTime() + 12 * 3600 * 1000);
 
 const PASSWORDS = {
   admin: "Admin123*",
@@ -302,6 +310,17 @@ async function main() {
     programId: educacion.id,
   });
 
+  // Primer semestre: el director se asigna al finalizar, así que aún no tiene
+  // trabajo de grado. Sirve para demostrar el flujo de asignación.
+  await createStudent({
+    name: "Camila Andrea Torres",
+    email: "estudiante7@gradtrack.test",
+    code: "MED-2026-019",
+    semester: 1,
+    cohortId: c2026_1!.id,
+    programId: educacion.id,
+  });
+
   const estIng = await createStudent({
     name: "Paula Andrea Gómez",
     email: "estudiante.ing@gradtrack.test",
@@ -329,7 +348,7 @@ async function main() {
         programId: opts.programId,
         title: opts.title,
         description: opts.description ?? null,
-        assignedAt: opts.assignedDaysAgo === null ? null : day(-opts.assignedDaysAgo),
+        assignedAt: opts.assignedDaysAgo === null ? null : stamp(-opts.assignedDaysAgo),
       },
     });
 
@@ -340,7 +359,7 @@ async function main() {
         entityType: "Thesis",
         entityId: thesis.id,
         metadata: { title: thesis.title },
-        createdAt: opts.assignedDaysAgo === null ? new Date() : day(-opts.assignedDaysAgo),
+        createdAt: opts.assignedDaysAgo === null ? new Date() : stamp(-opts.assignedDaysAgo),
       },
     });
 
@@ -351,7 +370,7 @@ async function main() {
           userId: opts.directorId,
           type: "DIRECTOR",
           assignedById: opts.assignedById,
-          startedAt: day(-(opts.assignedDaysAgo ?? 0)),
+          startedAt: stamp(-(opts.assignedDaysAgo ?? 0)),
         },
       });
       await prisma.auditLog.create({
@@ -361,7 +380,7 @@ async function main() {
           entityType: "ThesisSupervision",
           entityId: supervision.id,
           metadata: { thesisId: thesis.id, newUserId: opts.directorId },
-          createdAt: day(-(opts.assignedDaysAgo ?? 0)),
+          createdAt: stamp(-(opts.assignedDaysAgo ?? 0)),
         },
       });
     }
@@ -373,7 +392,7 @@ async function main() {
           userId: opts.codirectorId,
           type: "CODIRECTOR",
           assignedById: opts.assignedById,
-          startedAt: day(-(opts.assignedDaysAgo ?? 0)),
+          startedAt: stamp(-(opts.assignedDaysAgo ?? 0)),
         },
       });
     }
@@ -404,7 +423,7 @@ async function main() {
   });
 
   // --- Escenario C: ALERTA (0 asesorías, supera el umbral crítico) ---------
-  const tesisC = await createThesis({
+  await createThesis({
     studentProfileId: est3.profile.id,
     programId: educacion.id,
     title: "Acompañamiento docente y permanencia estudiantil en maestrías virtuales",
@@ -479,8 +498,8 @@ async function main() {
         nextAdvisoryDate: opts.nextInDays ? day(opts.nextInDays) : null,
         createdById: opts.directorId,
         confirmedById: opts.directorId,
-        confirmedAt: day(-opts.daysAgo),
-        createdAt: day(-opts.daysAgo - 5),
+        confirmedAt: stamp(-opts.daysAgo),
+        createdAt: stamp(-opts.daysAgo - 5),
         attendances: {
           create: [
             { userId: opts.studentUserId, roleAtMeeting: "STUDENT", attended: true },
@@ -498,7 +517,7 @@ async function main() {
           responsibleUserId: opts.studentUserId,
           dueDate: commitment.dueInDays ? day(commitment.dueInDays) : null,
           status: commitment.status ?? "PENDING",
-          completedAt: commitment.status === "COMPLETED" ? day(-opts.daysAgo + 3) : null,
+          completedAt: commitment.status === "COMPLETED" ? stamp(-opts.daysAgo + 3) : null,
         },
       });
     }
@@ -510,7 +529,7 @@ async function main() {
         entityType: "Advisory",
         entityId: advisory.id,
         metadata: { thesisId: opts.thesisId },
-        createdAt: day(-opts.daysAgo),
+        createdAt: stamp(-opts.daysAgo),
       },
     });
 
@@ -607,7 +626,7 @@ async function main() {
       status: "SCHEDULED",
       topic: "Avance del capítulo metodológico",
       createdById: director2.id,
-      createdAt: day(-20),
+      createdAt: stamp(-20),
     },
   });
 
