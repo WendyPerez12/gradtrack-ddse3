@@ -2,22 +2,34 @@ import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { APP_TIMEZONE } from "@/lib/env";
 
 /**
- * Toda la lógica académica razona en días de calendario institucionales.
- * Las columnas `@db.Date` de Postgres llegan como medianoche UTC, así que
- * normalizamos cualquier instante a "medianoche UTC del día calendario en la
- * zona horaria de la institución". Con eso las comparaciones y las restas de
- * días son estables sin importar la hora del servidor.
+ * Toda la lógica académica razona en días de calendario.
+ *
+ * Hay dos clases de valores y se normalizan distinto:
+ *
+ * 1. Los días guardados en columnas `@db.Date` (fecha de la asesoría, inicio y
+ *    fin del periodo) llegan como medianoche UTC y YA SON un día calendario:
+ *    convertirlos de zona horaria los correría un día. Solo se truncan en UTC.
+ * 2. Los instantes reales (`new Date()`, `assignedAt`) sí deben convertirse a
+ *    la zona institucional antes de saber a qué día pertenecen.
  */
-export function toCalendarDay(value: Date | string, timeZone: string = APP_TIMEZONE): Date {
+export function toCalendarDay(value: Date | string): Date {
+  const date = typeof value === "string" ? new Date(value) : value;
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0),
+  );
+}
+
+/** Día calendario al que pertenece un instante en la zona institucional. */
+export function toInstitutionalDay(value: Date | string, timeZone: string = APP_TIMEZONE): Date {
   const date = typeof value === "string" ? new Date(value) : value;
   const iso = formatInTimeZone(date, timeZone, "yyyy-MM-dd");
   return new Date(`${iso}T00:00:00.000Z`);
 }
 
-/** Días de calendario entre dos fechas (b - a). Positivo si b es posterior. */
-export function daysBetween(a: Date, b: Date, timeZone: string = APP_TIMEZONE): number {
-  const dayA = toCalendarDay(a, timeZone);
-  const dayB = toCalendarDay(b, timeZone);
+/** Días de calendario entre dos días (b - a). Positivo si b es posterior. */
+export function daysBetween(a: Date, b: Date): number {
+  const dayA = toCalendarDay(a);
+  const dayB = toCalendarDay(b);
   return Math.round((dayB.getTime() - dayA.getTime()) / 86_400_000);
 }
 
