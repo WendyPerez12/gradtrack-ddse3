@@ -296,3 +296,4 @@ Ver [docs/ROADMAP.md](docs/ROADMAP.md) para el detalle.
 | [docs/ROLES_AND_PERMISSIONS.md](docs/ROLES_AND_PERMISSIONS.md) | Matriz de permisos |
 | [docs/ALERT_RULES.md](docs/ALERT_RULES.md) | Reglas del motor de alertas |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Qué sigue después del MVP |
+# gradtrack-ddse3
