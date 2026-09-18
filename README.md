@@ -1,6 +1,6 @@
-# GradTrack
+# SIGET
 
-**Sistema de Seguimiento de Trabajos de Grado**
+**Sistema Integral de Gestión y Seguimiento de Trabajos de Grado**
 
 Plataforma web para que una institución universitaria gestione la asignación de
 trabajos de grado y, sobre todo, **monitoree las asesorías entre estudiantes y

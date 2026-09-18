@@ -36,9 +36,9 @@ export function Field({
         ) : null}
       </label>
       {children}
-      {hint && !error ? <p className="text-xs text-ink-faint">{hint}</p> : null}
+      {hint && !error ? <p id={htmlFor ? `${htmlFor}-help` : undefined} className="text-xs text-ink-faint">{hint}</p> : null}
       {error ? (
-        <p className="text-xs font-medium text-risk" role="alert">
+        <p id={htmlFor ? `${htmlFor}-help` : undefined} className="text-xs font-medium text-risk" role="alert">
           {error}
         </p>
       ) : null}
@@ -58,10 +58,12 @@ export function TextInput({
   return (
     <Field label={label} error={error} hint={hint} required={required} htmlFor={props.id ?? id}>
       <input
-        id={props.id ?? id}
-        aria-invalid={Boolean(error)}
-        className={cn(controlClass, error && "border-risk", className)}
         {...props}
+        id={props.id ?? id}
+        required={required}
+        aria-invalid={error ? true : props["aria-invalid"]}
+        aria-describedby={[props["aria-describedby"], error || hint ? `${props.id ?? id}-help` : undefined].filter(Boolean).join(" ") || undefined}
+        className={cn(controlClass, error && "border-risk", className)}
       />
     </Field>
   );
@@ -79,10 +81,12 @@ export function TextareaInput({
   return (
     <Field label={label} error={error} hint={hint} required={required} htmlFor={props.id ?? id}>
       <textarea
-        id={props.id ?? id}
-        aria-invalid={Boolean(error)}
-        className={cn(controlClass, "min-h-20 resize-y", error && "border-risk", className)}
         {...props}
+        id={props.id ?? id}
+        required={required}
+        aria-invalid={error ? true : props["aria-invalid"]}
+        aria-describedby={[props["aria-describedby"], error || hint ? `${props.id ?? id}-help` : undefined].filter(Boolean).join(" ") || undefined}
+        className={cn(controlClass, "min-h-20 resize-y", error && "border-risk", className)}
       />
     </Field>
   );
@@ -101,10 +105,12 @@ export function SelectInput({
   return (
     <Field label={label} error={error} hint={hint} required={required} htmlFor={props.id ?? id}>
       <select
-        id={props.id ?? id}
-        aria-invalid={Boolean(error)}
-        className={cn(controlClass, error && "border-risk", className)}
         {...props}
+        id={props.id ?? id}
+        required={required}
+        aria-invalid={error ? true : props["aria-invalid"]}
+        aria-describedby={[props["aria-describedby"], error || hint ? `${props.id ?? id}-help` : undefined].filter(Boolean).join(" ") || undefined}
+        className={cn(controlClass, error && "border-risk", className)}
       >
         {children}
       </select>

@@ -65,5 +65,5 @@ export function navItemsFor(role: ActorRole): NavItem[] {
 }
 
 /** Nombre del sistema, desacoplado de la lógica para poder cambiarlo (§1). */
-export const APP_NAME = "GradTrack";
-export const APP_TAGLINE = "Sistema de Seguimiento de Trabajos de Grado";
+export const APP_NAME = "SIGET";
+export const APP_TAGLINE = "Sistema Integral de Gestión y Seguimiento de Trabajos de Grado";
